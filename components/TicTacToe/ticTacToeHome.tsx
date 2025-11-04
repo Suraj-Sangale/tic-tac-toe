@@ -1,80 +1,66 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 
-type Player = "X" | "O" | null;
-type GameMode = "computer" | "player" | null;
+type Player = 'X' | 'O' | null;
+type GameMode = 'computer' | 'player' | null;
 type Board = Player[];
 
-const TicTacToeHome = () => {
+const TicTacToe = () => {
   const [gameMode, setGameMode] = useState<GameMode>(null);
   const [board, setBoard] = useState<Board>(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState(true);
   const [scores, setScores] = useState({ X: 0, O: 0, draws: 0 });
-  const [winner, setWinner] = useState<Player | "Draw" | null>(null);
+  const [winner, setWinner] = useState<Player | 'Draw' | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [winningLine, setWinningLine] = useState<number[]>([]);
 
   const winningCombinations = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8], // rows
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8], // columns
-    [0, 4, 8],
-    [2, 4, 6], // diagonals
+    [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+    [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+    [0, 4, 8], [2, 4, 6] // diagonals
   ];
 
-  const checkWinner = (
-    currentBoard: Board
-  ): { winner: Player | "Draw" | null; line: number[] } => {
+  const checkWinner = (currentBoard: Board): { winner: Player | 'Draw' | null; line: number[] } => {
     for (const [a, b, c] of winningCombinations) {
-      if (
-        currentBoard[a] &&
-        currentBoard[a] === currentBoard[b] &&
-        currentBoard[a] === currentBoard[c]
-      ) {
+      if (currentBoard[a] && currentBoard[a] === currentBoard[b] && currentBoard[a] === currentBoard[c]) {
         return { winner: currentBoard[a], line: [a, b, c] };
       }
     }
-    if (currentBoard.every((cell) => cell !== null)) {
-      return { winner: "Draw", line: [] };
+    if (currentBoard.every(cell => cell !== null)) {
+      return { winner: 'Draw', line: [] };
     }
     return { winner: null, line: [] };
   };
 
   const makeComputerMove = (currentBoard: Board) => {
-    const emptyCells = currentBoard
-      .map((cell, idx) => (cell === null ? idx : null))
-      .filter((idx) => idx !== null) as number[];
-
+    const emptyCells = currentBoard.map((cell, idx) => cell === null ? idx : null).filter(idx => idx !== null) as number[];
+    
     // Try to win
     for (const idx of emptyCells) {
       const testBoard = [...currentBoard];
-      testBoard[idx] = "O";
-      if (checkWinner(testBoard).winner === "O") return idx;
+      testBoard[idx] = 'O';
+      if (checkWinner(testBoard).winner === 'O') return idx;
     }
-
+    
     // Block player
     for (const idx of emptyCells) {
       const testBoard = [...currentBoard];
-      testBoard[idx] = "X";
-      if (checkWinner(testBoard).winner === "X") return idx;
+      testBoard[idx] = 'X';
+      if (checkWinner(testBoard).winner === 'X') return idx;
     }
-
+    
     // Take center
     if (emptyCells.includes(4)) return 4;
-
+    
     // Take corner
-    const corners = [0, 2, 6, 8].filter((idx) => emptyCells.includes(idx));
-    if (corners.length > 0)
-      return corners[Math.floor(Math.random() * corners.length)];
-
+    const corners = [0, 2, 6, 8].filter(idx => emptyCells.includes(idx));
+    if (corners.length > 0) return corners[Math.floor(Math.random() * corners.length)];
+    
     // Take any
     return emptyCells[Math.floor(Math.random() * emptyCells.length)];
   };
 
   useEffect(() => {
-    if (gameMode === "computer" && !isXNext && !winner) {
+    if (gameMode === 'computer' && !isXNext && !winner) {
       const timer = setTimeout(() => {
         const move = makeComputerMove(board);
         handleCellClick(move);
@@ -87,7 +73,7 @@ const TicTacToeHome = () => {
     if (board[index] || winner) return;
 
     const newBoard = [...board];
-    newBoard[index] = isXNext ? "X" : "O";
+    newBoard[index] = isXNext ? 'X' : 'O';
     setBoard(newBoard);
 
     const result = checkWinner(newBoard);
@@ -95,12 +81,12 @@ const TicTacToeHome = () => {
       setWinner(result.winner);
       setWinningLine(result.line);
       setShowResult(true);
-
-      setScores((prev) => ({
+      
+      setScores(prev => ({
         ...prev,
-        X: result.winner === "X" ? prev.X + 1 : prev.X,
-        O: result.winner === "O" ? prev.O + 1 : prev.O,
-        draws: result.winner === "Draw" ? prev.draws + 1 : prev.draws,
+        X: result.winner === 'X' ? prev.X + 1 : prev.X,
+        O: result.winner === 'O' ? prev.O + 1 : prev.O,
+        draws: result.winner === 'Draw' ? prev.draws + 1 : prev.draws
       }));
     } else {
       setIsXNext(!isXNext);
@@ -123,24 +109,34 @@ const TicTacToeHome = () => {
 
   if (gameMode === null) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 flex items-center justify-center p-4">
-        <div className="backdrop-blur-xl bg-white/10 rounded-3xl p-12 shadow-2xl border border-white/20 max-w-md w-full">
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute left-0 top-0 w-1/2 h-full flex flex-wrap content-start">
+            {Array.from({ length: 20 }).map((_, i) => (
+              <div key={`x-${i}`} className="text-white text-9xl font-bold opacity-20 p-4">❌</div>
+            ))}
+          </div>
+          <div className="absolute right-0 top-0 w-1/2 h-full flex flex-wrap content-start">
+            {Array.from({ length: 20 }).map((_, i) => (
+              <div key={`o-${i}`} className="text-white text-9xl font-bold opacity-20 p-4">⭕</div>
+            ))}
+          </div>
+        </div>
+        <div className="backdrop-blur-xl bg-white/10 rounded-3xl p-12 shadow-2xl border border-white/20 max-w-md w-full relative z-10">
           <h1 className="text-6xl font-bold text-white text-center mb-4 drop-shadow-lg">
             TicTacToe
           </h1>
-          <p className="text-white/90 text-center mb-12 text-lg">
-            Choose your game mode
-          </p>
-
+          <p className="text-white/90 text-center mb-12 text-lg">Choose your game mode</p>
+          
           <div className="space-y-4">
             <button
-              onClick={() => setGameMode("player")}
+              onClick={() => setGameMode('player')}
               className="w-full py-5 px-8 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-2xl text-white font-semibold text-xl transition-all duration-300 border border-white/30 hover:scale-105 active:scale-95 shadow-lg"
             >
               🎮 Play vs Player
             </button>
             <button
-              onClick={() => setGameMode("computer")}
+              onClick={() => setGameMode('computer')}
               className="w-full py-5 px-8 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-2xl text-white font-semibold text-xl transition-all duration-300 border border-white/30 hover:scale-105 active:scale-95 shadow-lg"
             >
               🤖 Play vs Computer
@@ -152,8 +148,20 @@ const TicTacToeHome = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-500 to-pink-500 flex items-center justify-center p-4">
-      <div className="backdrop-blur-xl bg-white/10 rounded-3xl p-8 shadow-2xl border border-white/20 max-w-2xl w-full">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-500 to-pink-500 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute left-0 top-0 w-1/2 h-full flex flex-wrap content-start">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div key={`x-${i}`} className="text-white text-9xl font-bold opacity-20 p-4">❌</div>
+          ))}
+        </div>
+        <div className="absolute right-0 top-0 w-1/2 h-full flex flex-wrap content-start">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div key={`o-${i}`} className="text-white text-9xl font-bold opacity-20 p-4">⭕</div>
+          ))}
+        </div>
+      </div>
+      <div className="backdrop-blur-xl bg-white/10 rounded-3xl p-8 shadow-2xl border border-white/20 max-w-2xl w-full relative z-10">
         <div className="flex justify-between items-center mb-8">
           <button
             onClick={backToMenu}
@@ -162,7 +170,7 @@ const TicTacToeHome = () => {
             ← Menu
           </button>
           <h2 className="text-3xl font-bold text-white drop-shadow-lg">
-            {gameMode === "computer" ? "🤖 vs Computer" : "🎮 vs Player"}
+            {gameMode === 'computer' ? '🤖 vs Computer' : '🎮 vs Player'}
           </h2>
           <div className="w-24"></div>
         </div>
@@ -181,9 +189,7 @@ const TicTacToeHome = () => {
           <div className="text-center p-4 bg-white/10 rounded-xl border border-white/20">
             <div className="text-4xl mb-2">⭕</div>
             <div className="text-white text-2xl font-bold">{scores.O}</div>
-            <div className="text-white/80 text-sm">
-              {gameMode === "computer" ? "Computer" : "Player O"}
-            </div>
+            <div className="text-white/80 text-sm">{gameMode === 'computer' ? 'Computer' : 'Player O'}</div>
           </div>
         </div>
 
@@ -194,21 +200,17 @@ const TicTacToeHome = () => {
               onClick={() => handleCellClick(index)}
               disabled={!!cell || !!winner}
               className={`aspect-square bg-white/20 backdrop-blur-lg rounded-2xl border-2 border-white/30 text-6xl font-bold text-white transition-all duration-300 hover:bg-white/30 hover:scale-105 active:scale-95 disabled:cursor-not-allowed shadow-lg ${
-                winningLine.includes(index)
-                  ? "bg-green-400/40 border-green-300/50"
-                  : ""
+                winningLine.includes(index) ? 'bg-green-400/40 border-green-300/50' : ''
               }`}
             >
-              {cell === "X" ? "❌" : cell === "O" ? "⭕" : ""}
+              {cell === 'X' ? '❌' : cell === 'O' ? '⭕' : ''}
             </button>
           ))}
         </div>
 
         <div className="text-center">
           <p className="text-white text-xl mb-4">
-            {winner
-              ? "Game Over!"
-              : `Current Turn: ${isXNext ? "❌ X" : "⭕ O"}`}
+            {winner ? 'Game Over!' : `Current Turn: ${isXNext ? '❌ X' : '⭕ O'}`}
           </p>
           <button
             onClick={resetGame}
@@ -224,13 +226,13 @@ const TicTacToeHome = () => {
           <div className="backdrop-blur-xl bg-white/20 rounded-3xl p-8 shadow-2xl border-2 border-white/30 max-w-md w-full animate-in">
             <div className="text-center">
               <div className="text-8xl mb-4">
-                {winner === "X" ? "❌" : winner === "O" ? "⭕" : "🤝"}
+                {winner === 'X' ? '❌' : winner === 'O' ? '⭕' : '🤝'}
               </div>
               <h2 className="text-4xl font-bold text-white mb-4 drop-shadow-lg">
-                {winner === "Draw" ? "It's a Draw!" : `${winner} Wins!`}
+                {winner === 'Draw' ? "It's a Draw!" : `${winner} Wins!`}
               </h2>
               <p className="text-white/90 text-xl mb-8">
-                {winner === "Draw" ? "Well played both!" : "Congratulations!"}
+                {winner === 'Draw' ? 'Well played both!' : 'Congratulations!'}
               </p>
               <div className="flex gap-4">
                 <button
@@ -257,4 +259,4 @@ const TicTacToeHome = () => {
   );
 };
 
-export default TicTacToeHome;
+export default TicTacToe;
