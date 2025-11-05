@@ -124,24 +124,16 @@ const TicTacToe = () => {
   if (gameMode === null) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 flex items-center justify-center p-4 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-20">
           <div className="absolute left-0 top-0 w-1/2 h-full flex flex-wrap content-start">
-            <div
-              key={`x-`}
-              className="text-white text-[30rem] font-bold p-4 right-72 absolute -top-4"
-            >
+            <div className="text-white text-[30rem] font-bold p-4 right-72 absolute -top-4">
               ❌
             </div>
           </div>
           <div className="absolute right-0 top-0 w-1/2 h-full flex flex-wrap content-start">
-            {Array.from({ length: 20 }).map((_, i) => (
-              <div
-                key={`o-${i}`}
-                className="text-white text-9xl font-bold opacity-60 p-4"
-              >
-                ⭕
-              </div>
-            ))}
+            <div className="text-white text-[30rem] font-bold p-4 left-72 absolute -top-4">
+              ⭕
+            </div>
           </div>
         </div>
         <div className="backdrop-blur-xl bg-white/10 rounded-3xl p-12 shadow-2xl border border-white/20 max-w-md w-full relative z-10">
@@ -173,26 +165,18 @@ const TicTacToe = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-500 to-pink-500 flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute left-0 top-0 w-1/2 h-full flex flex-wrap content-start">
-          {Array.from({ length: 20 }).map((_, i) => (
-            <div
-              key={`x-${i}`}
-              className="text-white text-9xl font-bold opacity-20 p-4"
-            >
-              ❌
-            </div>
-          ))}
+      <div className="absolute inset-0 opacity-20">
+        <div
+          className="absolute -left-1/4 top-1/2 -translate-y-1/2 text-white font-bold"
+          style={{ fontSize: "50vw" }}
+        >
+          ❌
         </div>
-        <div className="absolute right-0 top-0 w-1/2 h-full flex flex-wrap content-start">
-          {Array.from({ length: 20 }).map((_, i) => (
-            <div
-              key={`o-${i}`}
-              className="text-white text-9xl font-bold opacity-20 p-4"
-            >
-              ⭕
-            </div>
-          ))}
+        <div
+          className="absolute -right-1/4 top-1/2 -translate-y-1/2 text-white font-bold"
+          style={{ fontSize: "50vw" }}
+        >
+          ⭕
         </div>
       </div>
       <div className="backdrop-blur-xl bg-white/10 rounded-3xl p-8 shadow-2xl border border-white/20 max-w-2xl w-full relative z-10">
