@@ -139,7 +139,7 @@ const TicTacToe = () => {
 
   if (gameMode === null) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 flex items-center justify-center p-4 relative overflow-hidden">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1/2 h-full flex flex-wrap content-start">
             <div className="text-white text-[30rem] font-bold p-4 right-72 absolute">
@@ -180,7 +180,7 @@ const TicTacToe = () => {
   }
 
   return (
-    <div className=" bg-gradient-to-br from-blue-600 via-purple-500 to-pink-500 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-blue-600 via-purple-500 to-pink-500 flex items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute inset-0 opacity-20">
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1/2 h-full flex flex-wrap content-start">
           <div className="text-white text-[30rem] font-bold p-4 right-72 absolute">
@@ -193,7 +193,7 @@ const TicTacToe = () => {
           </div>
         </div>
       </div>
-      <div className="backdrop-blur-xl bg-white/10 rounded-3xl p-4 shadow-2xl border border-white/20 max-w-4xl w-full relative z-10 flex gap-4">
+      <div className="backdrop-blur-xl bg-white/10 rounded-3xl p-4 shadow-2xl border border-white/20 max-w-3xl w-full relative z-10 flex gap-4">
         <div className="flex-1">
           <div className="flex justify-between items-center mb-4">
             <button
@@ -207,7 +207,7 @@ const TicTacToe = () => {
             </h2>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 mb-4 ">
+          <div className="grid grid-cols-3 gap-2 mb-4 relative">
             {board.map((cell, index) => (
               <button
                 key={index}
