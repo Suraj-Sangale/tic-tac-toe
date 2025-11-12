@@ -489,7 +489,7 @@ const TicTacToe = () => {
       </div>
 
       <div className="backdrop-blur-xl bg-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-4 md:p-6 shadow-2xl border-2 border-white/30 max-w-7xl w-full relative z-10 flex flex-col lg:flex-row gap-4 sm:gap-5 md:gap-6 board-entrance mx-auto max-h-[95vh] overflow-y-auto">
-        <div className="flex-1 min-w-0">
+        <div className="flex-1">
           <div className="flex justify-between items-center mb-3 sm:mb-4 md:mb-6 flex-wrap gap-2">
             <button
               onClick={backToMenu}
@@ -513,7 +513,7 @@ const TicTacToe = () => {
           </div>
 
           {/* Game Board */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-4 md:mb-6 relative p-1 sm:p-2">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-3 sm:mb-4 md:mb-6 relative p-1 sm:p-2 max-w-xs sm:max-w-sm md:max-w-md mx-auto lg:mx-0">
             {board.map((cell, index) => {
               const isAnimated = animatedCells.has(index);
               const isWinning = winningLine.includes(index);
@@ -527,13 +527,13 @@ const TicTacToe = () => {
                   disabled={
                     !!cell || !!winner || (gameMode === "computer" && !isXNext)
                   }
-                  className={`aspect-square bg-white/20 backdrop-blur-lg rounded-xl sm:rounded-2xl border-2 border-white/30 text-white transition-all duration-300 hover:bg-white/30 hover:scale-105 active:scale-95 disabled:cursor-not-allowed shadow-xl hover:shadow-2xl relative overflow-hidden group ${
+                  className={`aspect-square bg-white/20 backdrop-blur-lg rounded-lg sm:rounded-xl border-2 border-white/30 text-white transition-all duration-300 hover:bg-white/30 hover:scale-105 active:scale-95 disabled:cursor-not-allowed shadow-lg hover:shadow-xl relative overflow-hidden group ${
                     isWinning
                       ? "bg-gradient-to-br from-green-400/50 to-emerald-500/50 border-green-300/70 shadow-green-500/50 animate-pulse"
                       : "hover:border-white/50"
                   } ${isAnimated ? "cell-pop" : ""} ${
                     !cell && !winner && !(gameMode === "computer" && !isXNext)
-                      ? "hover:ring-2 sm:hover:ring-4 hover:ring-white/30"
+                      ? "hover:ring-2 hover:ring-white/30"
                       : ""
                   }`}
                   style={{
@@ -545,7 +545,7 @@ const TicTacToe = () => {
                   {/* Ripple effect on click */}
                   {isAnimated && (
                     <div
-                      className="absolute inset-0 rounded-xl sm:rounded-2xl bg-white/30"
+                      className="absolute inset-0 rounded-lg sm:rounded-xl bg-white/30"
                       style={{
                         animation: "cellRipple 0.6s ease-out",
                         transformOrigin: "center",
@@ -554,7 +554,7 @@ const TicTacToe = () => {
                   )}
 
                   {/* Cell content */}
-                  <div className="relative z-10 w-full h-full flex items-center justify-center p-2 sm:p-3 md:p-4">
+                  <div className="relative z-10 flex items-center justify-center p-1.5 sm:p-2 md:p-2.5">
                     {cell === "X" ? (
                       <div className="text-red-400 w-full h-full">
                         <RenderX animate={isAnimated} />
@@ -564,7 +564,7 @@ const TicTacToe = () => {
                         <RenderO animate={isAnimated} />
                       </div>
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
+                      <div className="flex items-center justify-center">
                         {!winner &&
                           !cell &&
                           !(gameMode === "computer" && !isXNext) && (
@@ -659,18 +659,18 @@ const TicTacToe = () => {
         </div>
 
         {/* Score Board - Stacks on mobile, side panel on desktop */}
-        <div className="w-full lg:w-56 backdrop-blur-lg bg-white/10 p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-white/20 flex flex-row lg:flex-col gap-2 sm:gap-3 md:gap-4 shadow-xl overflow-x-auto lg:overflow-x-visible">
+        <div className="w-full lg:w-48 xl:w-50 backdrop-blur-lg bg-white/10 p-2 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl border-2 border-white/20 flex flex-row lg:flex-col gap-2 sm:gap-3 md:gap-4 shadow-xl overflow-x-auto lg:overflow-x-visible">
           <div
-            className={`text-center p-3 sm:p-4 bg-white/10 rounded-lg sm:rounded-xl border-2 border-white/20 transition-all duration-300 flex-1 min-w-[100px] lg:min-w-0 ${
+            className={`text-center p-2 sm:p-3 md:p-4 bg-white/10 rounded-lg sm:rounded-xl border-2 border-white/20 transition-all duration-300 flex-1 min-w-[90px] sm:min-w-[100px] lg:min-w-0 ${
               scoreAnimation.type === "X"
                 ? "score-bump bg-red-400/30 border-red-300/50 shadow-lg shadow-red-500/50"
                 : "score-entrance-1"
             }`}
           >
-            <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">
+            <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-1 sm:mb-2">
               ❌
             </div>
-            <div className="text-white text-xl sm:text-2xl md:text-3xl font-bold drop-shadow-lg">
+            <div className="text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold drop-shadow-lg">
               {scores.X}
             </div>
             <div className="text-white/90 text-xs sm:text-sm font-medium mt-1">
@@ -678,16 +678,16 @@ const TicTacToe = () => {
             </div>
           </div>
           <div
-            className={`text-center p-3 sm:p-4 bg-white/10 rounded-lg sm:rounded-xl border-2 border-white/20 transition-all duration-300 flex-1 min-w-[100px] lg:min-w-0 ${
+            className={`text-center p-2 sm:p-3 md:p-4 bg-white/10 rounded-lg sm:rounded-xl border-2 border-white/20 transition-all duration-300 flex-1 min-w-[90px] sm:min-w-[100px] lg:min-w-0 ${
               scoreAnimation.type === "draws"
                 ? "score-bump bg-yellow-400/30 border-yellow-300/50 shadow-lg shadow-yellow-500/50"
                 : "score-entrance-2"
             }`}
           >
-            <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">
+            <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-1 sm:mb-2">
               🤝
             </div>
-            <div className="text-white text-xl sm:text-2xl md:text-3xl font-bold drop-shadow-lg">
+            <div className="text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold drop-shadow-lg">
               {scores.draws}
             </div>
             <div className="text-white/90 text-xs sm:text-sm font-medium mt-1">
@@ -695,16 +695,16 @@ const TicTacToe = () => {
             </div>
           </div>
           <div
-            className={`text-center p-3 sm:p-4 bg-white/10 rounded-lg sm:rounded-xl border-2 border-white/20 transition-all duration-300 flex-1 min-w-[100px] lg:min-w-0 ${
+            className={`text-center p-2 sm:p-3 md:p-4 bg-white/10 rounded-lg sm:rounded-xl border-2 border-white/20 transition-all duration-300 flex-1 min-w-[90px] sm:min-w-[100px] lg:min-w-0 ${
               scoreAnimation.type === "O"
                 ? "score-bump bg-blue-400/30 border-blue-300/50 shadow-lg shadow-blue-500/50"
                 : "score-entrance-3"
             }`}
           >
-            <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">
+            <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-1 sm:mb-2">
               ⭕
             </div>
-            <div className="text-white text-xl sm:text-2xl md:text-3xl font-bold drop-shadow-lg">
+            <div className="text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold drop-shadow-lg">
               {scores.O}
             </div>
             <div className="text-white/90 text-xs sm:text-sm font-medium mt-1">
