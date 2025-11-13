@@ -1,4 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { 
+  FaTimes, 
+  FaCircle, 
+  FaGamepad, 
+  FaRobot, 
+  FaHandshake, 
+  FaTrophy, 
+  FaRedo, 
+  FaArrowLeft 
+} from "react-icons/fa";
 
 type Player = "X" | "O" | null;
 type GameMode = "computer" | "player" | null;
@@ -396,26 +406,26 @@ const TicTacToe = () => {
 
   if (gameMode === null) {
     return (
-      <div className="min-h-screen h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 bg-animated flex items-center justify-center p-3 sm:p-4 md:p-6 relative overflow-hidden">
+      <div className="min-h-screen h-screen bg-gradient-to-br from-purple-600 via-blue-400 to-orange-400 bg-animated flex items-center justify-center p-3 sm:p-4 md:p-6 relative overflow-hidden">
         {/* Animated background elements - Hidden on very small screens, smaller on mobile */}
         <div className="absolute inset-0 opacity-10 sm:opacity-15 overflow-hidden">
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1/2 h-full flex items-center justify-center">
             <div
-              className="text-white text-[8rem] sm:text-[15rem] md:text-[20rem] lg:text-[25rem] font-bold select-none pointer-events-none"
+              className="text-white select-none pointer-events-none"
               style={{ animation: "float 6s ease-in-out infinite" }}
             >
-              ❌
+              <FaTimes className="w-[8rem] h-[8rem] sm:w-[15rem] sm:h-[15rem] md:w-[20rem] md:h-[20rem] lg:w-[25rem] lg:h-[25rem]" />
             </div>
           </div>
           <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-full flex items-center justify-center">
             <div
-              className="text-white text-[8rem] sm:text-[15rem] md:text-[20rem] lg:text-[25rem] font-bold select-none pointer-events-none"
+              className="text-white select-none pointer-events-none"
               style={{
                 animation: "float 8s ease-in-out infinite",
                 animationDelay: "1s",
               }}
             >
-              ⭕
+              <FaCircle className="w-[8rem] h-[8rem] sm:w-[15rem] sm:h-[15rem] md:w-[20rem] md:h-[20rem] lg:w-[25rem] lg:h-[25rem]" />
             </div>
           </div>
         </div>
@@ -438,8 +448,8 @@ const TicTacToe = () => {
               className="w-full py-4 sm:py-5 md:py-6 px-6 sm:px-8 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-xl sm:rounded-2xl text-white font-semibold text-lg sm:text-xl transition-all duration-300 border-2 border-white/30 hover:scale-105 active:scale-95 shadow-xl hover:shadow-2xl hover:border-white/50 group relative overflow-hidden"
             >
               <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
-                <span className="text-xl sm:text-2xl group-hover:scale-110 transition-transform duration-300">
-                  🎮
+                <span className="group-hover:scale-110 transition-transform duration-300">
+                  <FaGamepad className="w-6 h-6 sm:w-7 sm:h-7" />
                 </span>
                 <span className="whitespace-nowrap">Play vs Player</span>
               </span>
@@ -450,8 +460,8 @@ const TicTacToe = () => {
               className="w-full py-4 sm:py-5 md:py-6 px-6 sm:px-8 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-xl sm:rounded-2xl text-white font-semibold text-lg sm:text-xl transition-all duration-300 border-2 border-white/30 hover:scale-105 active:scale-95 shadow-xl hover:shadow-2xl hover:border-white/50 group relative overflow-hidden"
             >
               <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
-                <span className="text-xl sm:text-2xl group-hover:scale-110 transition-transform duration-300">
-                  🤖
+                <span className="group-hover:scale-110 transition-transform duration-300">
+                  <FaRobot className="w-6 h-6 sm:w-7 sm:h-7" />
                 </span>
                 <span className="whitespace-nowrap">Play vs Computer</span>
               </span>
@@ -469,21 +479,21 @@ const TicTacToe = () => {
       <div className="absolute inset-0 opacity-10 sm:opacity-15 overflow-hidden">
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1/2 h-full flex items-center justify-center">
           <div
-            className="text-white text-[8rem] sm:text-[15rem] md:text-[20rem] lg:text-[25rem] font-bold select-none pointer-events-none"
+            className="text-white select-none pointer-events-none"
             style={{ animation: "float 6s ease-in-out infinite" }}
           >
-            ❌
+            <FaTimes className="w-[8rem] h-[8rem] sm:w-[15rem] sm:h-[15rem] md:w-[20rem] md:h-[20rem] lg:w-[25rem] lg:h-[25rem]" />
           </div>
         </div>
         <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-full flex items-center justify-center">
           <div
-            className="text-white text-[8rem] sm:text-[15rem] md:text-[20rem] lg:text-[25rem] font-bold select-none pointer-events-none"
+            className="text-white select-none pointer-events-none"
             style={{
               animation: "float 8s ease-in-out infinite",
               animationDelay: "1s",
             }}
           >
-            ⭕
+            <FaCircle className="w-[8rem] h-[8rem] sm:w-[15rem] sm:h-[15rem] md:w-[20rem] md:h-[20rem] lg:w-[25rem] lg:h-[25rem]" />
           </div>
         </div>
       </div>
@@ -496,15 +506,19 @@ const TicTacToe = () => {
               className="px-2 sm:px-3 py-1 sm:py-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-lg text-white font-medium transition-all duration-300 border-2 border-white/30 text-xs sm:text-sm hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl group"
             >
               <span className="flex items-center gap-1">
-                <span className="group-hover:-translate-x-1 transition-transform text-sm">
-                  ←
+                <span className="group-hover:-translate-x-1 transition-transform">
+                  <FaArrowLeft className="w-4 h-4" />
                 </span>
                 <span>Menu</span>
               </span>
             </button>
             <h2 className="text-base sm:text-lg md:text-xl font-bold text-white drop-shadow-lg flex items-center gap-2">
-              <span className="text-lg sm:text-xl md:text-2xl">
-                {gameMode === "computer" ? "🤖" : "🎮"}
+              <span>
+                {gameMode === "computer" ? (
+                  <FaRobot className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
+                ) : (
+                  <FaGamepad className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
+                )}
               </span>
               <span className="whitespace-nowrap text-sm sm:text-base">
                 {gameMode === "computer" ? "vs Computer" : "vs Player"}
@@ -639,8 +653,8 @@ const TicTacToe = () => {
                     : "score-entrance-1"
                 }`}
               >
-                <div className="text-lg sm:text-xl md:text-2xl mb-0.5 sm:mb-1">
-                  ❌
+                <div className="flex justify-center mb-0.5 sm:mb-1 text-red-400">
+                  <FaTimes className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
                 </div>
                 <div className="text-white text-base sm:text-lg md:text-xl font-bold drop-shadow-lg">
                   {scores.X}
@@ -656,8 +670,8 @@ const TicTacToe = () => {
                     : "score-entrance-2"
                 }`}
               >
-                <div className="text-lg sm:text-xl md:text-2xl mb-0.5 sm:mb-1">
-                  🤝
+                <div className="flex justify-center mb-0.5 sm:mb-1 text-yellow-400">
+                  <FaHandshake className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
                 </div>
                 <div className="text-white text-base sm:text-lg md:text-xl font-bold drop-shadow-lg">
                   {scores.draws}
@@ -673,8 +687,8 @@ const TicTacToe = () => {
                     : "score-entrance-3"
                 }`}
               >
-                <div className="text-lg sm:text-xl md:text-2xl mb-0.5 sm:mb-1">
-                  ⭕
+                <div className="flex justify-center mb-0.5 sm:mb-1 text-blue-400">
+                  <FaCircle className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
                 </div>
                 <div className="text-white text-base sm:text-lg md:text-xl font-bold drop-shadow-lg">
                   {scores.O}
@@ -689,14 +703,28 @@ const TicTacToe = () => {
           <div className="text-center">
             <p className="text-white text-xs sm:text-sm md:text-base mb-1.5 sm:mb-2 font-semibold drop-shadow-lg">
               {winner ? (
-                <span className="text-base sm:text-lg md:text-xl  block">
-                  {winner === "Draw" ? "🤝 It's a Draw!" : "🎉 Game Over!"}
+                <span className="text-base sm:text-lg md:text-xl flex items-center justify-center gap-2 block">
+                  {winner === "Draw" ? (
+                    <>
+                      <FaHandshake className="w-5 h-5 sm:w-6 sm:h-6" />
+                      <span>It's a Draw!</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaTrophy className="w-5 h-5 sm:w-6 sm:h-6" />
+                      <span>Game Over!</span>
+                    </>
+                  )}
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-1 sm:gap-2 flex-wrap">
                   <span className="text-xs sm:text-sm">Current Turn:</span>
-                  <span className="text-lg sm:text-xl ">
-                    {isXNext ? "❌" : "⭕"}
+                  <span className="flex items-center">
+                    {isXNext ? (
+                      <FaTimes className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />
+                    ) : (
+                      <FaCircle className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+                    )}
                   </span>
                   <span className="text-sm sm:text-base">
                     {isXNext ? "X" : "O"}
@@ -706,9 +734,10 @@ const TicTacToe = () => {
             </p>
             <button
               onClick={resetGame}
-              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-lg text-white font-semibold text-xs sm:text-sm transition-all duration-300 border-2 border-white/30 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-lg text-white font-semibold text-xs sm:text-sm transition-all duration-300 border-2 border-white/30 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 mx-auto"
             >
-              🔄 New Game
+              <FaRedo className="w-4 h-4" />
+              <span>New Game</span>
             </button>
           </div>
         </div>
@@ -747,7 +776,7 @@ const TicTacToe = () => {
 
             <div className="text-center relative z-10">
               <div
-                className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-4 sm:mb-5 md:mb-6 inline-block"
+                className="mb-4 sm:mb-5 md:mb-6 inline-block"
                 style={{
                   animation:
                     "cellPopIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, float 3s ease-in-out 1s infinite",
@@ -755,11 +784,11 @@ const TicTacToe = () => {
                 }}
               >
                 {winner === "X" ? (
-                  <span className="text-red-400">❌</span>
+                  <FaTimes className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 text-red-400" />
                 ) : winner === "O" ? (
-                  <span className="text-blue-400">⭕</span>
+                  <FaCircle className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 text-blue-400" />
                 ) : (
-                  <span className="text-yellow-400">🤝</span>
+                  <FaHandshake className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 text-yellow-400" />
                 )}
               </div>
               <h2
@@ -771,14 +800,19 @@ const TicTacToe = () => {
                 {winner === "Draw" ? "It's a Draw!" : `${winner} Wins!`}
               </h2>
               <p
-                className="text-white/90 text-base sm:text-lg md:text-xl mb-6 sm:mb-8 md:mb-10 font-medium px-2"
+                className="text-white/90 text-base sm:text-lg md:text-xl mb-6 sm:mb-8 md:mb-10 font-medium px-2 flex items-center justify-center gap-2"
                 style={{
                   animation: "fadeInUp 0.6s ease-out 0.4s both",
                 }}
               >
-                {winner === "Draw"
-                  ? "Well played both!"
-                  : "Congratulations! 🎉"}
+                {winner === "Draw" ? (
+                  "Well played both!"
+                ) : (
+                  <>
+                    <span>Congratulations!</span>
+                    <FaTrophy className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </>
+                )}
               </p>
               <div
                 className="flex flex-col sm:flex-row gap-3 sm:gap-4"
