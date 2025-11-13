@@ -464,7 +464,7 @@ const TicTacToe = () => {
   }
 
   return (
-    <div className="min-h-screen h-screen bg-gradient-to-br from-blue-600 via-purple-500 to-pink-500 bg-animated flex items-center justify-center p-2 sm:p-3 md:p-4 relative overflow-hidden">
+    <div className="min-h-screen h-screen bg-gradient-to-br from-blue-600 via-purple-500 to-pink-500 bg-animated flex items-center justify-center p-1.5 sm:p-2 md:p-3 relative overflow-hidden">
       {/* Animated background elements - Responsive sizing */}
       <div className="absolute inset-0 opacity-10 sm:opacity-15 overflow-hidden">
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1/2 h-full flex items-center justify-center">
@@ -488,162 +488,217 @@ const TicTacToe = () => {
         </div>
       </div>
 
-      <div className="backdrop-blur-xl bg-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-4 md:p-6 shadow-2xl border-2 border-white/30 max-w-7xl w-full relative z-10 flex flex-col lg:flex-row gap-4 sm:gap-5 md:gap-6 board-entrance mx-auto max-h-[95vh] overflow-y-auto">
-        <div className="flex-1">
-          <div className="flex justify-between items-center mb-3 sm:mb-4 md:mb-6 flex-wrap gap-2">
+      <div className="backdrop-blur-xl bg-white/10 rounded-2xl sm:rounded-3xl p-2 sm:p-3 md:p-4 shadow-2xl border-2 border-white/30 max-w-7xl w-full relative z-10 flex flex-col lg:flex-row gap-2 sm:gap-3 md:gap-4 board-entrance mx-auto">
+        <div className="flex-1 flex flex-col justify-around">
+          <div className="flex justify-between items-center mb-2 sm:mb-3 flex-wrap gap-2">
             <button
               onClick={backToMenu}
-              className="px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-lg sm:rounded-xl text-white font-medium transition-all duration-300 border-2 border-white/30 text-xs sm:text-sm hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl group"
+              className="px-2 sm:px-3 py-1 sm:py-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-lg text-white font-medium transition-all duration-300 border-2 border-white/30 text-xs sm:text-sm hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl group"
             >
-              <span className="flex items-center gap-1 sm:gap-2">
-                <span className="group-hover:-translate-x-1 transition-transform text-sm sm:text-base">
+              <span className="flex items-center gap-1">
+                <span className="group-hover:-translate-x-1 transition-transform text-sm">
                   ←
                 </span>
                 <span>Menu</span>
               </span>
             </button>
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white drop-shadow-lg flex items-center gap-2">
-              <span className="text-xl sm:text-2xl md:text-3xl">
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-white drop-shadow-lg flex items-center gap-2">
+              <span className="text-lg sm:text-xl md:text-2xl">
                 {gameMode === "computer" ? "🤖" : "🎮"}
               </span>
-              <span className="whitespace-nowrap">
+              <span className="whitespace-nowrap text-sm sm:text-base">
                 {gameMode === "computer" ? "vs Computer" : "vs Player"}
               </span>
             </h2>
           </div>
 
-          {/* Game Board */}
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-3 sm:mb-4 md:mb-6 relative p-1 sm:p-2 max-w-xs sm:max-w-sm md:max-w-md mx-auto lg:mx-0">
-            {board.map((cell, index) => {
-              const isAnimated = animatedCells.has(index);
-              const isWinning = winningLine.includes(index);
-              return (
-                <button
-                  key={index}
-                  ref={(el) => {
-                    cellRefs.current[index] = el;
-                  }}
-                  onClick={() => handleCellClick(index)}
-                  disabled={
-                    !!cell || !!winner || (gameMode === "computer" && !isXNext)
-                  }
-                  className={`aspect-square bg-white/20 backdrop-blur-lg rounded-lg sm:rounded-xl border-2 border-white/30 text-white transition-all duration-300 hover:bg-white/30 hover:scale-105 active:scale-95 disabled:cursor-not-allowed shadow-lg hover:shadow-xl relative overflow-hidden group ${
-                    isWinning
-                      ? "bg-gradient-to-br from-green-400/50 to-emerald-500/50 border-green-300/70 shadow-green-500/50 animate-pulse"
-                      : "hover:border-white/50"
-                  } ${isAnimated ? "cell-pop" : ""} ${
-                    !cell && !winner && !(gameMode === "computer" && !isXNext)
-                      ? "hover:ring-2 hover:ring-white/30"
-                      : ""
-                  }`}
-                  style={{
-                    animation: isAnimated
-                      ? "cellPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
-                      : undefined,
-                  }}
-                >
-                  {/* Ripple effect on click */}
-                  {isAnimated && (
-                    <div
-                      className="absolute inset-0 rounded-lg sm:rounded-xl bg-white/30"
-                      style={{
-                        animation: "cellRipple 0.6s ease-out",
-                        transformOrigin: "center",
-                      }}
-                    ></div>
-                  )}
-
-                  {/* Cell content */}
-                  <div className="relative z-10 flex items-center justify-center p-1.5 sm:p-2 md:p-2.5">
-                    {cell === "X" ? (
-                      <div className="text-red-400 w-full h-full">
-                        <RenderX animate={isAnimated} />
-                      </div>
-                    ) : cell === "O" ? (
-                      <div className="text-blue-400 w-full h-full">
-                        <RenderO animate={isAnimated} />
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center">
-                        {!winner &&
-                          !cell &&
-                          !(gameMode === "computer" && !isXNext) && (
-                            <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-white/20 group-hover:bg-white/40 transition-colors"></div>
-                          )}
-                      </div>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-
-            {/* Winning line */}
-            {winningLine.length > 0 && (
-              <svg
-                className="absolute inset-0 pointer-events-none z-20"
-                style={{ width: "100%", height: "100%", padding: "4px" }}
-              >
-                <line
-                  x1={`${((winningLine[0] % 3) * 100) / 3 + 100 / 6}%`}
-                  y1={`${
-                    (Math.floor(winningLine[0] / 3) * 100) / 3 + 100 / 6
-                  }%`}
-                  x2={`${((winningLine[2] % 3) * 100) / 3 + 100 / 6}%`}
-                  y2={`${
-                    (Math.floor(winningLine[2] / 3) * 100) / 3 + 100 / 6
-                  }%`}
-                  stroke="url(#winningGradient)"
-                  strokeWidth="6"
-                  strokeLinecap="round"
-                  style={{
-                    strokeDasharray: "1000",
-                    strokeDashoffset: "1000",
-                    animation: "drawLine 0.8s ease-out forwards",
-                    filter: "drop-shadow(0 0 10px rgba(255, 255, 255, 0.8))",
-                  }}
-                />
-                <defs>
-                  <linearGradient
-                    id="winningGradient"
-                    x1="0%"
-                    y1="0%"
-                    x2="100%"
-                    y2="0%"
+          <div className="flex flex-row justify-evenly ">
+            {/* Game Board */}
+            <div className="grid grid-cols-3 gap-1 sm:gap-1.5 mb-2 sm:mb-3 relative p-1 max-w-[280px] sm:max-w-[320px] md:max-w-[360px] mx-auto lg:mx-0">
+              {board.map((cell, index) => {
+                const isAnimated = animatedCells.has(index);
+                const isWinning = winningLine.includes(index);
+                return (
+                  <button
+                    key={index}
+                    ref={(el) => {
+                      cellRefs.current[index] = el;
+                    }}
+                    onClick={() => handleCellClick(index)}
+                    disabled={
+                      !!cell ||
+                      !!winner ||
+                      (gameMode === "computer" && !isXNext)
+                    }
+                    className={`aspect-square bg-white/20 backdrop-blur-lg rounded-lg sm:rounded-xl border-2 border-white/30 text-white transition-all duration-300 hover:bg-white/30 hover:scale-105 active:scale-95 disabled:cursor-not-allowed shadow-lg hover:shadow-xl relative overflow-hidden group ${
+                      isWinning
+                        ? "bg-gradient-to-br from-green-400/50 to-emerald-500/50 border-green-300/70 shadow-green-500/50 animate-pulse"
+                        : "hover:border-white/50"
+                    } ${isAnimated ? "cell-pop" : ""} ${
+                      !cell && !winner && !(gameMode === "computer" && !isXNext)
+                        ? "hover:ring-2 hover:ring-white/30"
+                        : ""
+                    }`}
+                    style={{
+                      animation: isAnimated
+                        ? "cellPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
+                        : undefined,
+                    }}
                   >
-                    <stop
-                      offset="0%"
-                      stopColor="rgba(255, 255, 255, 0.9)"
-                    />
-                    <stop
-                      offset="50%"
-                      stopColor="rgba(255, 255, 255, 1)"
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor="rgba(255, 255, 255, 0.9)"
-                    />
-                  </linearGradient>
-                </defs>
-              </svg>
-            )}
-          </div>
+                    {/* Ripple effect on click */}
+                    {isAnimated && (
+                      <div
+                        className="absolute inset-0 rounded-lg sm:rounded-xl bg-white/30"
+                        style={{
+                          animation: "cellRipple 0.6s ease-out",
+                          transformOrigin: "center",
+                        }}
+                      ></div>
+                    )}
 
+                    {/* Cell content */}
+                    <div className="relative z-10 flex items-center justify-center p-1 sm:p-1.5">
+                      {cell === "X" ? (
+                        <div className="text-red-400 w-full h-full">
+                          <RenderX animate={isAnimated} />
+                        </div>
+                      ) : cell === "O" ? (
+                        <div className="text-blue-400 w-full h-full">
+                          <RenderO animate={isAnimated} />
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center">
+                          {!winner &&
+                            !cell &&
+                            !(gameMode === "computer" && !isXNext) && (
+                              <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-white/20 group-hover:bg-white/40 transition-colors"></div>
+                            )}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+
+              {/* Winning line */}
+              {winningLine.length > 0 && (
+                <svg
+                  className="absolute inset-0 pointer-events-none z-20"
+                  style={{ width: "100%", height: "100%", padding: "4px" }}
+                >
+                  <line
+                    x1={`${((winningLine[0] % 3) * 100) / 3 + 100 / 6}%`}
+                    y1={`${
+                      (Math.floor(winningLine[0] / 3) * 100) / 3 + 100 / 6
+                    }%`}
+                    x2={`${((winningLine[2] % 3) * 100) / 3 + 100 / 6}%`}
+                    y2={`${
+                      (Math.floor(winningLine[2] / 3) * 100) / 3 + 100 / 6
+                    }%`}
+                    stroke="url(#winningGradient)"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    style={{
+                      strokeDasharray: "1000",
+                      strokeDashoffset: "1000",
+                      animation: "drawLine 0.8s ease-out forwards",
+                      filter: "drop-shadow(0 0 10px rgba(255, 255, 255, 0.8))",
+                    }}
+                  />
+                  <defs>
+                    <linearGradient
+                      id="winningGradient"
+                      x1="0%"
+                      y1="0%"
+                      x2="100%"
+                      y2="0%"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="rgba(255, 255, 255, 0.9)"
+                      />
+                      <stop
+                        offset="50%"
+                        stopColor="rgba(255, 255, 255, 1)"
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor="rgba(255, 255, 255, 0.9)"
+                      />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              )}
+            </div>
+            {/* Score Board - Stacks on mobile, side panel on desktop */}
+            <div className="w-full lg:w-40 xl:w-44 backdrop-blur-lg bg-white/10 p-2 sm:p-2.5 rounded-xl border-2 border-white/20 flex flex-row lg:flex-col gap-1.5 sm:gap-2 shadow-xl overflow-x-auto lg:overflow-x-visible">
+              <div
+                className={`text-center p-1.5 sm:p-2 bg-white/10 rounded-lg border-2 border-white/20 transition-all duration-300 flex-1 min-w-[80px] sm:min-w-[90px] lg:min-w-0 ${
+                  scoreAnimation.type === "X"
+                    ? "score-bump bg-red-400/30 border-red-300/50 shadow-lg shadow-red-500/50"
+                    : "score-entrance-1"
+                }`}
+              >
+                <div className="text-lg sm:text-xl md:text-2xl mb-0.5 sm:mb-1">
+                  ❌
+                </div>
+                <div className="text-white text-base sm:text-lg md:text-xl font-bold drop-shadow-lg">
+                  {scores.X}
+                </div>
+                <div className="text-white/90 text-[10px] sm:text-xs font-medium mt-0.5">
+                  Player X
+                </div>
+              </div>
+              <div
+                className={`text-center p-1.5 sm:p-2 bg-white/10 rounded-lg border-2 border-white/20 transition-all duration-300 flex-1 min-w-[80px] sm:min-w-[90px] lg:min-w-0 ${
+                  scoreAnimation.type === "draws"
+                    ? "score-bump bg-yellow-400/30 border-yellow-300/50 shadow-lg shadow-yellow-500/50"
+                    : "score-entrance-2"
+                }`}
+              >
+                <div className="text-lg sm:text-xl md:text-2xl mb-0.5 sm:mb-1">
+                  🤝
+                </div>
+                <div className="text-white text-base sm:text-lg md:text-xl font-bold drop-shadow-lg">
+                  {scores.draws}
+                </div>
+                <div className="text-white/90 text-[10px] sm:text-xs font-medium mt-0.5">
+                  Draws
+                </div>
+              </div>
+              <div
+                className={`text-center p-1.5 sm:p-2 bg-white/10 rounded-lg border-2 border-white/20 transition-all duration-300 flex-1 min-w-[80px] sm:min-w-[90px] lg:min-w-0 ${
+                  scoreAnimation.type === "O"
+                    ? "score-bump bg-blue-400/30 border-blue-300/50 shadow-lg shadow-blue-500/50"
+                    : "score-entrance-3"
+                }`}
+              >
+                <div className="text-lg sm:text-xl md:text-2xl mb-0.5 sm:mb-1">
+                  ⭕
+                </div>
+                <div className="text-white text-base sm:text-lg md:text-xl font-bold drop-shadow-lg">
+                  {scores.O}
+                </div>
+                <div className="text-white/90 text-[10px] sm:text-xs font-medium mt-0.5">
+                  {gameMode === "computer" ? "Computer" : "Player O"}
+                </div>
+              </div>
+            </div>
+          </div>
           {/* Game Status */}
           <div className="text-center">
-            <p className="text-white text-sm sm:text-base md:text-lg mb-2 sm:mb-3 md:mb-4 font-semibold drop-shadow-lg">
+            <p className="text-white text-xs sm:text-sm md:text-base mb-1.5 sm:mb-2 font-semibold drop-shadow-lg">
               {winner ? (
-                <span className="text-lg sm:text-xl md:text-2xl animate-pulse block">
+                <span className="text-base sm:text-lg md:text-xl animate-pulse block">
                   {winner === "Draw" ? "🤝 It's a Draw!" : "🎉 Game Over!"}
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-1 sm:gap-2 flex-wrap">
-                  <span className="text-xs sm:text-sm md:text-base">
-                    Current Turn:
-                  </span>
-                  <span className="text-xl sm:text-2xl animate-pulse">
+                  <span className="text-xs sm:text-sm">Current Turn:</span>
+                  <span className="text-lg sm:text-xl animate-pulse">
                     {isXNext ? "❌" : "⭕"}
                   </span>
-                  <span className="text-lg sm:text-xl">
+                  <span className="text-sm sm:text-base">
                     {isXNext ? "X" : "O"}
                   </span>
                 </span>
@@ -651,65 +706,10 @@ const TicTacToe = () => {
             </p>
             <button
               onClick={resetGame}
-              className="px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-lg sm:rounded-xl text-white font-semibold text-xs sm:text-sm md:text-base transition-all duration-300 border-2 border-white/30 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-lg text-white font-semibold text-xs sm:text-sm transition-all duration-300 border-2 border-white/30 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
             >
               🔄 New Game
             </button>
-          </div>
-        </div>
-
-        {/* Score Board - Stacks on mobile, side panel on desktop */}
-        <div className="w-full lg:w-48 xl:w-50 backdrop-blur-lg bg-white/10 p-2 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl border-2 border-white/20 flex flex-row lg:flex-col gap-2 sm:gap-3 md:gap-4 shadow-xl overflow-x-auto lg:overflow-x-visible">
-          <div
-            className={`text-center p-2 sm:p-3 md:p-4 bg-white/10 rounded-lg sm:rounded-xl border-2 border-white/20 transition-all duration-300 flex-1 min-w-[90px] sm:min-w-[100px] lg:min-w-0 ${
-              scoreAnimation.type === "X"
-                ? "score-bump bg-red-400/30 border-red-300/50 shadow-lg shadow-red-500/50"
-                : "score-entrance-1"
-            }`}
-          >
-            <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-1 sm:mb-2">
-              ❌
-            </div>
-            <div className="text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold drop-shadow-lg">
-              {scores.X}
-            </div>
-            <div className="text-white/90 text-xs sm:text-sm font-medium mt-1">
-              Player X
-            </div>
-          </div>
-          <div
-            className={`text-center p-2 sm:p-3 md:p-4 bg-white/10 rounded-lg sm:rounded-xl border-2 border-white/20 transition-all duration-300 flex-1 min-w-[90px] sm:min-w-[100px] lg:min-w-0 ${
-              scoreAnimation.type === "draws"
-                ? "score-bump bg-yellow-400/30 border-yellow-300/50 shadow-lg shadow-yellow-500/50"
-                : "score-entrance-2"
-            }`}
-          >
-            <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-1 sm:mb-2">
-              🤝
-            </div>
-            <div className="text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold drop-shadow-lg">
-              {scores.draws}
-            </div>
-            <div className="text-white/90 text-xs sm:text-sm font-medium mt-1">
-              Draws
-            </div>
-          </div>
-          <div
-            className={`text-center p-2 sm:p-3 md:p-4 bg-white/10 rounded-lg sm:rounded-xl border-2 border-white/20 transition-all duration-300 flex-1 min-w-[90px] sm:min-w-[100px] lg:min-w-0 ${
-              scoreAnimation.type === "O"
-                ? "score-bump bg-blue-400/30 border-blue-300/50 shadow-lg shadow-blue-500/50"
-                : "score-entrance-3"
-            }`}
-          >
-            <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-1 sm:mb-2">
-              ⭕
-            </div>
-            <div className="text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold drop-shadow-lg">
-              {scores.O}
-            </div>
-            <div className="text-white/90 text-xs sm:text-sm font-medium mt-1">
-              {gameMode === "computer" ? "Computer" : "Player O"}
-            </div>
           </div>
         </div>
       </div>
