@@ -532,7 +532,7 @@ const TicTacToe = () => {
                     }
                     className={`aspect-square bg-white/20 backdrop-blur-lg rounded-lg sm:rounded-xl border-2 border-white/30 text-white transition-all duration-300 hover:bg-white/30 hover:scale-105 active:scale-95 disabled:cursor-not-allowed shadow-lg hover:shadow-xl relative overflow-hidden group ${
                       isWinning
-                        ? "bg-gradient-to-br from-green-400/50 to-emerald-500/50 border-green-300/70 shadow-green-500/50 animate-pulse"
+                        ? "bg-gradient-to-br from-green-400/50 to-emerald-500/50 border-green-300/70 shadow-green-500/50 "
                         : "hover:border-white/50"
                     } ${isAnimated ? "cell-pop" : ""} ${
                       !cell && !winner && !(gameMode === "computer" && !isXNext)
@@ -689,13 +689,13 @@ const TicTacToe = () => {
           <div className="text-center">
             <p className="text-white text-xs sm:text-sm md:text-base mb-1.5 sm:mb-2 font-semibold drop-shadow-lg">
               {winner ? (
-                <span className="text-base sm:text-lg md:text-xl animate-pulse block">
+                <span className="text-base sm:text-lg md:text-xl  block">
                   {winner === "Draw" ? "🤝 It's a Draw!" : "🎉 Game Over!"}
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-1 sm:gap-2 flex-wrap">
                   <span className="text-xs sm:text-sm">Current Turn:</span>
-                  <span className="text-lg sm:text-xl animate-pulse">
+                  <span className="text-lg sm:text-xl ">
                     {isXNext ? "❌" : "⭕"}
                   </span>
                   <span className="text-sm sm:text-base">
