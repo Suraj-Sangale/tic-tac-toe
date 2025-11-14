@@ -13,7 +13,7 @@ interface MenuScreenProps {
 
 export const MenuScreen = ({ onSelectMode }: MenuScreenProps) => {
   return (
-    <div className="min-h-screen h-screen bg-gradient-to-br from-purple-600 via-blue-400 to-orange-400 bg-animated flex items-center justify-center p-3 sm:p-4 md:p-6 relative overflow-hidden">
+    <div className="min-h-screen h-screen bg-gradient-to-br from-indigo-950 via-purple-500 to-pink-500 bg-animated flex items-center justify-center p-3 sm:p-4 md:p-6 relative overflow-hidden">
       <AnimatedBackground />
 
       {/* Menu Card */}
