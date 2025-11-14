@@ -10,37 +10,50 @@ import {
   FaArrowLeft,
 } from "react-icons/fa";
 
+// Type definitions for game state
 type Player = "X" | "O" | null;
 type GameMode = "computer" | "player" | null;
 type Board = Player[];
 type CellAnimation = { index: number; timestamp: number };
 
+/**
+ * Main TicTacToe Game Component
+ * Handles game logic, UI rendering, and animations for a tic-tac-toe game
+ * Supports both player vs player and player vs computer modes
+ */
 export const TicTacToeHome = () => {
-  const [gameMode, setGameMode] = useState<GameMode>(null);
-  const [board, setBoard] = useState<Board>(Array(9).fill(null));
-  const [isXNext, setIsXNext] = useState(true);
-  const [scores, setScores] = useState({ X: 0, O: 0, draws: 0 });
-  const [winner, setWinner] = useState<Player | "Draw" | null>(null);
-  const [showResult, setShowResult] = useState(false);
-  const [winningLine, setWinningLine] = useState<number[]>([]);
-  const [animatedCells, setAnimatedCells] = useState<Set<number>>(new Set());
+  // Game state management
+  const [gameMode, setGameMode] = useState<GameMode>(null); // Current game mode: null = menu, "player" = 2 players, "computer" = vs AI
+  const [board, setBoard] = useState<Board>(Array(9).fill(null)); // 3x3 board represented as a 9-element array
+  const [isXNext, setIsXNext] = useState(true); // Tracks whose turn it is (true = X, false = O)
+  const [scores, setScores] = useState({ X: 0, O: 0, draws: 0 }); // Score tracking for the session
+  const [winner, setWinner] = useState<Player | "Draw" | null>(null); // Current game winner
+  const [showResult, setShowResult] = useState(false); // Controls visibility of result modal
+  const [winningLine, setWinningLine] = useState<number[]>([]); // Indices of cells in the winning line
+  const [animatedCells, setAnimatedCells] = useState<Set<number>>(new Set()); // Tracks which cells are currently animating
   const [scoreAnimation, setScoreAnimation] = useState<{
     type: "X" | "O" | "draws" | null;
-  }>({ type: null });
-  const cellRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
+  }>({ type: null }); // Controls score animation when a game ends
+  const cellRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({}); // Refs to board cell elements
 
+  // All possible winning combinations in a 3x3 grid
+  // Format: [cell1, cell2, cell3] where cells are indices 0-8
   const winningCombinations = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8], // rows
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8], // columns
-    [0, 4, 8],
-    [2, 4, 6], // diagonals
+    [0, 1, 2], // Top row
+    [3, 4, 5], // Middle row
+    [6, 7, 8], // Bottom row
+    [0, 3, 6], // Left column
+    [1, 4, 7], // Middle column
+    [2, 5, 8], // Right column
+    [0, 4, 8], // Main diagonal (top-left to bottom-right)
+    [2, 4, 6], // Anti-diagonal (top-right to bottom-left)
   ];
 
-  // Enhanced CSS animations
+  /**
+   * CSS Animations Setup
+   * Injects custom keyframe animations into the document head
+   * These animations are used throughout the component for visual effects
+   */
   useEffect(() => {
     const style = document.createElement("style");
     style.textContent = `
@@ -183,7 +196,8 @@ export const TicTacToeHome = () => {
         animation: scoreBump 0.6s ease-out;
       }
       .board-entrance {
-        animation: fadeInUp 0.6s ease-out forwards;
+        /* Use opacity-only animation to prevent layout shifts */
+        animation: fadeIn 0.6s ease-out forwards;
       }
       .menu-entrance {
         animation: fadeInUp 0.8s ease-out forwards;
@@ -208,9 +222,15 @@ export const TicTacToeHome = () => {
     };
   }, []);
 
+  /**
+   * Checks if there's a winner on the current board
+   * @param currentBoard - The current game board state
+   * @returns Object containing the winner (X, O, Draw, or null) and the winning line indices
+   */
   const checkWinner = (
     currentBoard: Board
   ): { winner: Player | "Draw" | null; line: number[] } => {
+    // Check all winning combinations
     for (const [a, b, c] of winningCombinations) {
       if (
         currentBoard[a] &&
@@ -220,55 +240,76 @@ export const TicTacToeHome = () => {
         return { winner: currentBoard[a], line: [a, b, c] };
       }
     }
+    // Check for draw (all cells filled, no winner)
     if (currentBoard.every((cell) => cell !== null)) {
       return { winner: "Draw", line: [] };
     }
     return { winner: null, line: [] };
   };
 
+  /**
+   * AI Computer Move Logic
+   * Implements a simple but effective AI strategy:
+   * 1. Try to win if possible
+   * 2. Block player from winning
+   * 3. Take center if available
+   * 4. Take a corner if available
+   * 5. Take any available cell
+   * @param currentBoard - The current game board state
+   * @returns The index where the computer should place its move
+   */
   const makeComputerMove = (currentBoard: Board) => {
+    // Get all empty cell indices
     const emptyCells = currentBoard
       .map((cell, idx) => (cell === null ? idx : null))
       .filter((idx) => idx !== null) as number[];
 
-    // Try to win
+    // Strategy 1: Try to win if possible
     for (const idx of emptyCells) {
       const testBoard = [...currentBoard];
       testBoard[idx] = "O";
       if (checkWinner(testBoard).winner === "O") return idx;
     }
 
-    // Block player
+    // Strategy 2: Block player from winning
     for (const idx of emptyCells) {
       const testBoard = [...currentBoard];
       testBoard[idx] = "X";
       if (checkWinner(testBoard).winner === "X") return idx;
     }
 
-    // Take center
+    // Strategy 3: Take center if available (best strategic position)
     if (emptyCells.includes(4)) return 4;
 
-    // Take corner
+    // Strategy 4: Take a corner if available
     const corners = [0, 2, 6, 8].filter((idx) => emptyCells.includes(idx));
     if (corners.length > 0)
       return corners[Math.floor(Math.random() * corners.length)];
 
-    // Take any
+    // Strategy 5: Take any available cell
     return emptyCells[Math.floor(Math.random() * emptyCells.length)];
   };
 
+  /**
+   * Processes a move on the board
+   * Handles cell placement, animation triggers, winner checking, and score updates
+   * @param index - The cell index (0-8) where the move is being made
+   * @param player - The player making the move ("X" or "O")
+   */
   const processMove = useCallback(
     (index: number, player: Player) => {
+      // Prevent moves on occupied cells or after game ends
       if (board[index] || winner) return;
 
-      // Add animation trigger
+      // Trigger cell animation
       setAnimatedCells((prev) => new Set(prev).add(index));
 
+      // Update board state
       const newBoard = [...board];
       newBoard[index] = player;
       setBoard(newBoard);
 
-      // Remove animation class after animation completes
+      // Clean up animation state after animation completes
       setTimeout(() => {
         setAnimatedCells((prev) => {
           const next = new Set(prev);
@@ -277,15 +318,17 @@ export const TicTacToeHome = () => {
         });
       }, 500);
 
+      // Check for winner or draw
       const result = checkWinner(newBoard);
       if (result.winner) {
+        // Delay winner announcement for better UX
         setTimeout(() => {
           setWinner(result.winner);
           setWinningLine(result.line);
           setShowResult(true);
         }, 600);
 
-        // Animate score update
+        // Trigger score animation based on winner
         if (result.winner === "X") {
           setScoreAnimation({ type: "X" });
         } else if (result.winner === "O") {
@@ -294,8 +337,10 @@ export const TicTacToeHome = () => {
           setScoreAnimation({ type: "draws" });
         }
 
+        // Reset score animation after it completes
         setTimeout(() => setScoreAnimation({ type: null }), 600);
 
+        // Update scores
         setScores((prev) => ({
           ...prev,
           X: result.winner === "X" ? prev.X + 1 : prev.X,
@@ -303,14 +348,21 @@ export const TicTacToeHome = () => {
           draws: result.winner === "Draw" ? prev.draws + 1 : prev.draws,
         }));
       } else {
+        // Switch turns if game continues
         setIsXNext(!isXNext);
       }
     },
     [board, winner, isXNext]
   );
 
+  /**
+   * Computer Move Effect
+   * Automatically triggers computer move when it's the computer's turn
+   * Only runs in computer mode when it's O's turn and game hasn't ended
+   */
   useEffect(() => {
     if (gameMode === "computer" && !isXNext && !winner) {
+      // Add delay for better UX (makes AI feel more natural)
       const timer = setTimeout(() => {
         const move = makeComputerMove(board);
         processMove(move, "O");
@@ -319,12 +371,21 @@ export const TicTacToeHome = () => {
     }
   }, [isXNext, gameMode, board, winner, processMove]);
 
+  /**
+   * Handles cell click events
+   * Determines which player is making the move and processes it
+   * @param index - The clicked cell index (0-8)
+   */
   const handleCellClick = (index: number) => {
     const player = isXNext ? "X" : "O";
     processMove(index, player);
   };
 
-  // Component to render X with animation
+  /**
+   * Renders an animated X symbol
+   * Uses SVG with stroke-dasharray animation for drawing effect
+   * @param animate - Whether to animate the drawing (default: true)
+   */
   const RenderX = ({ animate = true }: { animate?: boolean }) => (
     <svg
       viewBox="0 0 100 100"
@@ -364,7 +425,11 @@ export const TicTacToeHome = () => {
     </svg>
   );
 
-  // Component to render O with animation
+  /**
+   * Renders an animated O symbol
+   * Uses SVG circle with stroke-dasharray animation for drawing effect
+   * @param animate - Whether to animate the drawing (default: true)
+   */
   const RenderO = ({ animate = true }: { animate?: boolean }) => (
     <svg
       viewBox="0 0 100 100"
@@ -388,6 +453,10 @@ export const TicTacToeHome = () => {
     </svg>
   );
 
+  /**
+   * Resets the game board and state for a new game
+   * Clears the board, resets turn to X, clears winner, and resets animations
+   */
   const resetGame = () => {
     setBoard(Array(9).fill(null));
     setIsXNext(true);
@@ -397,6 +466,10 @@ export const TicTacToeHome = () => {
     setAnimatedCells(new Set());
   };
 
+  /**
+   * Returns to the main menu
+   * Resets game state and clears all scores
+   */
   const backToMenu = () => {
     setGameMode(null);
     resetGame();
@@ -404,6 +477,7 @@ export const TicTacToeHome = () => {
     setScoreAnimation({ type: null });
   };
 
+  // Render main menu when no game mode is selected
   if (gameMode === null) {
     return (
       <div className="min-h-screen h-screen bg-gradient-to-br from-purple-600 via-blue-400 to-orange-400 bg-animated flex items-center justify-center p-3 sm:p-4 md:p-6 relative overflow-hidden">
@@ -527,8 +601,9 @@ export const TicTacToeHome = () => {
           </div>
 
           <div className="flex flex-row justify-evenly ">
-            {/* Game Board */}
-            <div className="grid grid-cols-3 gap-1 sm:gap-1.5 mb-2 sm:mb-3 relative p-1 max-w-[280px] sm:max-w-[320px] md:max-w-[360px] mx-auto lg:mx-0">
+            {/* Game Board - Fixed dimensions to prevent resizing on load */}
+            <div className="grid grid-cols-3 gap-1 sm:gap-1.5 mb-2 sm:mb-3 relative p-1 w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] md:w-[360px] md:h-[360px] mx-auto lg:mx-0 flex-shrink-0">
+              {/* Render 9 cells (3x3 grid) for the game board */}
               {board.map((cell, index) => {
                 const isAnimated = animatedCells.has(index);
                 const isWinning = winningLine.includes(index);
@@ -743,6 +818,7 @@ export const TicTacToeHome = () => {
         </div>
       </div>
 
+      {/* Result Modal - Shows winner/draw when game ends */}
       {showResult && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto"
