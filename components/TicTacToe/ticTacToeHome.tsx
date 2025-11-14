@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { 
-  FaTimes, 
-  FaCircle, 
-  FaGamepad, 
-  FaRobot, 
-  FaHandshake, 
-  FaTrophy, 
-  FaRedo, 
-  FaArrowLeft 
+import {
+  FaTimes,
+  FaCircle,
+  FaGamepad,
+  FaRobot,
+  FaHandshake,
+  FaTrophy,
+  FaRedo,
+  FaArrowLeft,
 } from "react-icons/fa";
 
 type Player = "X" | "O" | null;
@@ -15,7 +15,7 @@ type GameMode = "computer" | "player" | null;
 type Board = Player[];
 type CellAnimation = { index: number; timestamp: number };
 
-const TicTacToe = () => {
+export const TicTacToeHome = () => {
   const [gameMode, setGameMode] = useState<GameMode>(null);
   const [board, setBoard] = useState<Board>(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState(true);
@@ -498,7 +498,7 @@ const TicTacToe = () => {
         </div>
       </div>
 
-      <div className="backdrop-blur-xl bg-white/10 rounded-2xl sm:rounded-3xl p-2 sm:p-3 md:p-4 shadow-2xl border-2 border-white/30 max-w-7xl w-full relative z-10 flex flex-col lg:flex-row gap-2 sm:gap-3 md:gap-4 board-entrance mx-auto">
+      <div className="backdrop-blur-xl bg-white/10 rounded-2xl sm:rounded-3xl p-2 sm:p-3 md:p-4 shadow-2xl border-2 border-white/30 w-4/5  relative z-10 flex flex-col lg:flex-row gap-2 sm:gap-3 md:gap-4 board-entrance mx-auto">
         <div className="flex-1 flex flex-col justify-around">
           <div className="flex justify-between items-center mb-2 sm:mb-3 flex-wrap gap-2">
             <button
@@ -843,5 +843,3 @@ const TicTacToe = () => {
     </div>
   );
 };
-
-export default TicTacToe;
