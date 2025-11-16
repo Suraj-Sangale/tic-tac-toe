@@ -3,7 +3,7 @@
  * Initial screen where users choose game mode
  */
 
-import { FaGamepad, FaRobot } from "react-icons/fa";
+import { FaGamepad, FaRobot, FaLink } from "react-icons/fa";
 import { GameMode } from "./types";
 import { AnimatedBackground } from "./AnimatedBackground";
 
@@ -50,6 +50,18 @@ export const MenuScreen = ({ onSelectMode }: MenuScreenProps) => {
                 <FaRobot className="w-6 h-6 sm:w-7 sm:h-7" />
               </span>
               <span className="whitespace-nowrap">Play vs Computer</span>
+            </span>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+          </button>
+          <button
+            onClick={() => onSelectMode("online")}
+            className="w-full py-4 sm:py-5 md:py-6 px-6 sm:px-8 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-xl sm:rounded-2xl text-white font-semibold text-lg sm:text-xl transition-all duration-300 border-2 border-white/30 hover:scale-105 active:scale-95 shadow-xl hover:shadow-2xl hover:border-white/50 group relative overflow-hidden"
+          >
+            <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
+              <span className="group-hover:scale-110 transition-transform duration-300">
+                <FaLink className="w-6 h-6 sm:w-7 sm:h-7" />
+              </span>
+              <span className="whitespace-nowrap">Invite a Friend</span>
             </span>
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
           </button>

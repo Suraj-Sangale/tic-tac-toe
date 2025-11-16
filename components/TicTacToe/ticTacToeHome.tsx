@@ -14,20 +14,38 @@ import {
   FaTrophy,
   FaRedo,
   FaArrowLeft,
+  FaLink,
 } from "react-icons/fa";
 
-import { GameMode, Board, Player, GameScores, ScoreAnimation } from "./types";
+import {
+  GameMode,
+  Board,
+  Player,
+  GameScores,
+  ScoreAnimation,
+  RoomData,
+} from "./types";
 import { checkWinner, makeComputerMove } from "./gameLogic";
 import { useGameAnimations } from "./useGameAnimations";
 import { MenuScreen } from "./MenuScreen";
+import { InviteScreen } from "./InviteScreen";
 import { GameBoard } from "./GameBoard";
 import { ScoreBoard } from "./ScoreBoard";
 import { ResultModal } from "./ResultModal";
 import { AnimatedBackground } from "./AnimatedBackground";
+import { useWebSocket } from "./useWebSocket";
 
 export const TicTacToeHome = () => {
   // Initialize animations
   useGameAnimations();
+
+  // WebSocket for online mode
+  const {
+    socket,
+    roomData,
+    makeMove: wsMakeMove,
+    resetGame: wsResetGame,
+  } = useWebSocket();
 
   // Game state management
   const [gameMode, setGameMode] = useState<GameMode>(null);
@@ -41,13 +59,13 @@ export const TicTacToeHome = () => {
   const [scoreAnimation, setScoreAnimation] = useState<ScoreAnimation>({
     type: null,
   });
+  const [onlineRoomData, setOnlineRoomData] = useState<RoomData | null>(null);
+  const [showInviteScreen, setShowInviteScreen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  /**
-   * Processes a move on the board
-   * Handles cell placement, animation triggers, winner checking, and score updates
-   * @param index - The cell index (0-8) where the move is being made
-   * @param player - The player making the move ("X" or "O")
-   */
+  // Processes a move on the board
+  // @param index - The cell index (0-8) where the move is being made
+  //  * @param player - The player making the move ("X" or "O")
   const processMove = useCallback(
     (index: number, player: Player) => {
       // Prevent moves on occupied cells or after game ends
@@ -107,11 +125,9 @@ export const TicTacToeHome = () => {
     [board, winner, isXNext]
   );
 
-  /**
-   * Computer Move Effect
-   * Automatically triggers computer move when it's the computer's turn
-   * Only runs in computer mode when it's O's turn and game hasn't ended
-   */
+  // Computer Move Effect
+  // Only runs in computer mode when it's O's turn and game hasn't ended
+
   useEffect(() => {
     if (gameMode === "computer" && !isXNext && !winner) {
       // Add delay for better UX (makes AI feel more natural)
@@ -123,43 +139,210 @@ export const TicTacToeHome = () => {
     }
   }, [isXNext, gameMode, board, winner, processMove]);
 
-  /**
-   * Handles cell click events
-   * Determines which player is making the move and processes it
-   * @param index - The clicked cell index (0-8)
-   */
+  // Handles cell click events
+  //  * @param index - The clicked cell index (0-8)
+
+  console.log("onlineRoomData", onlineRoomData);
   const handleCellClick = (index: number) => {
-    const player = isXNext ? "X" : "O";
-    processMove(index, player);
+    if (gameMode === "online") {
+      // Online mode: send move via WebSocket
+      if (!onlineRoomData) return;
+      const player = onlineRoomData.playerSymbol;
+      // Only allow moves if it's the player's turn
+      if (board[index] || winner) return;
+      wsMakeMove(index, player);
+    } else {
+      // Local mode: process move locally
+      const player = isXNext ? "X" : "O";
+      processMove(index, player);
+    }
   };
 
-  /**
-   * Resets the game board and state for a new game
-   * Clears the board, resets turn to X, clears winner, and resets animations
-   */
+  // Resets the game board and state for a new game
+
   const resetGame = () => {
-    setBoard(Array(9).fill(null));
-    setIsXNext(true);
-    setWinner(null);
-    setShowResult(false);
-    setWinningLine([]);
-    setAnimatedCells(new Set());
+    if (gameMode === "online" && onlineRoomData) {
+      // Online mode: send reset via WebSocket
+      wsResetGame();
+    } else {
+      // Local mode: reset locally
+      setBoard(Array(9).fill(null));
+      setIsXNext(true);
+      setWinner(null);
+      setShowResult(false);
+      setWinningLine([]);
+      setAnimatedCells(new Set());
+    }
   };
 
-  /**
-   * Returns to the main menu
-   * Resets game state and clears all scores
-   */
+  // Returns to the main menu
+
   const backToMenu = () => {
     setGameMode(null);
     resetGame();
     setScores({ X: 0, O: 0, draws: 0 });
     setScoreAnimation({ type: null });
+    setOnlineRoomData(null);
+    setShowInviteScreen(false);
   };
+
+  // Handles online mode selection
+  const handleOnlineMode = () => {
+    setGameMode("online");
+    setShowInviteScreen(true);
+  };
+
+  // Called when room is ready (created or joined)
+  const handleRoomReady = (roomData: RoomData) => {
+    setOnlineRoomData(roomData);
+    // Don't hide invite screen - let it show the "Room Created/Joined" UI
+    // The invite screen will stay visible to show room info
+  };
+
+  // WebSocket event handlers for online mode
+  useEffect(() => {
+    if (!socket || gameMode !== "online") return;
+
+    const handleMoveMade = (data: {
+      board: Board;
+      currentTurn: Player;
+      winner: Player | "Draw" | null;
+      winningLine: number[];
+      lastMove: { index: number; player: Player };
+    }) => {
+      setBoard(data.board);
+      setIsXNext(data.currentTurn === "X");
+
+      // Trigger animation for the last move
+      setAnimatedCells((prev) => new Set(prev).add(data.lastMove.index));
+      setTimeout(() => {
+        setAnimatedCells((prev) => {
+          const next = new Set(prev);
+          next.delete(data.lastMove.index);
+          return next;
+        });
+      }, 500);
+
+      if (data.winner) {
+        setTimeout(() => {
+          setWinner(data.winner);
+          setWinningLine(data.winningLine);
+          setShowResult(true);
+        }, 600);
+
+        // Trigger score animation
+        if (data.winner === "X") {
+          setScoreAnimation({ type: "X" });
+        } else if (data.winner === "O") {
+          setScoreAnimation({ type: "O" });
+        } else {
+          setScoreAnimation({ type: "draws" });
+        }
+
+        setTimeout(() => setScoreAnimation({ type: null }), 600);
+
+        // Update scores
+        setScores((prev) => ({
+          ...prev,
+          X: data.winner === "X" ? prev.X + 1 : prev.X,
+          O: data.winner === "O" ? prev.O + 1 : prev.O,
+          draws: data.winner === "Draw" ? prev.draws + 1 : prev.draws,
+        }));
+      }
+    };
+
+    const handleGameReset = (data: { board: Board; currentTurn: Player }) => {
+      setBoard(data.board);
+      setIsXNext(data.currentTurn === "X");
+      setWinner(null);
+      setShowResult(false);
+      setWinningLine([]);
+      setAnimatedCells(new Set());
+    };
+
+    const handlePlayerJoined = (data?: { 
+      players?: Array<{ id: string }>;
+      gameState?: {
+        board: Board;
+        currentTurn: Player;
+        winner: Player | "Draw" | null;
+        winningLine: number[];
+      };
+    }) => {
+      // Player joined notification (could show a toast)
+      console.log("Player joined the room", data);
+      // Auto-proceed to game when both players are ready
+      if (data?.players && data.players.length >= 2 && onlineRoomData) {
+        // Clear any previous errors
+        setError(null);
+        
+        // Both players are in the room, sync game state if provided
+        if (data.gameState) {
+          setBoard(data.gameState.board);
+          setIsXNext(data.gameState.currentTurn === "X");
+          setWinner(data.gameState.winner);
+          setWinningLine(data.gameState.winningLine || []);
+          setAnimatedCells(new Set());
+          if (data.gameState.winner) {
+            setShowResult(true);
+          }
+        } else {
+          // If no game state provided, initialize fresh game
+          setBoard(Array(9).fill(null));
+          setIsXNext(true);
+          setWinner(null);
+          setWinningLine([]);
+          setAnimatedCells(new Set());
+        }
+        
+        // Hide invite screen to proceed to game
+        setShowInviteScreen(false);
+      }
+    };
+
+    const handlePlayerLeft = () => {
+      // Player left notification
+      console.log("Player left the room");
+      setError("Opponent disconnected");
+    };
+
+    socket.on("move-made", handleMoveMade);
+    socket.on("game-reset", handleGameReset);
+    socket.on("player-joined", handlePlayerJoined);
+    socket.on("player-left", handlePlayerLeft);
+
+    return () => {
+      socket.off("move-made", handleMoveMade);
+      socket.off("game-reset", handleGameReset);
+      socket.off("player-joined", handlePlayerJoined);
+      socket.off("player-left", handlePlayerLeft);
+    };
+  }, [socket, gameMode, onlineRoomData]);
 
   // Render main menu when no game mode is selected
   if (gameMode === null) {
-    return <MenuScreen onSelectMode={setGameMode} />;
+    return (
+      <MenuScreen
+        onSelectMode={(mode) => {
+          if (mode === "online") {
+            handleOnlineMode();
+          } else {
+            setGameMode(mode);
+          }
+        }}
+      />
+    );
+  }
+
+  // Render invite screen for online mode
+  // Show it when user selects online mode OR when they haven't started playing yet
+  if (gameMode === "online" && (showInviteScreen || !onlineRoomData)) {
+    return (
+      <InviteScreen
+        onBack={backToMenu}
+        onRoomReady={handleRoomReady}
+      />
+    );
   }
 
   return (
@@ -185,15 +368,28 @@ export const TicTacToeHome = () => {
               <span>
                 {gameMode === "computer" ? (
                   <FaRobot className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
+                ) : gameMode === "online" ? (
+                  <FaLink className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
                 ) : (
                   <FaGamepad className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
                 )}
               </span>
               <span className="whitespace-nowrap text-sm sm:text-base">
-                {gameMode === "computer" ? "vs Computer" : "vs Player"}
+                {gameMode === "computer"
+                  ? "vs Computer"
+                  : gameMode === "online"
+                  ? "Online Multiplayer"
+                  : "vs Player"}
               </span>
             </h2>
           </div>
+
+          {/* Error message for online mode */}
+          {error && gameMode === "online" && (
+            <div className="mb-2 p-2 bg-red-500/20 border border-red-500/50 rounded-lg text-red-100 text-xs sm:text-sm text-center">
+              {error}
+            </div>
+          )}
 
           {/* Game Board and Score Board */}
           <div className="flex flex-row justify-evenly">
@@ -205,6 +401,7 @@ export const TicTacToeHome = () => {
               gameMode={gameMode}
               isXNext={isXNext}
               onCellClick={handleCellClick}
+              onlineRoomData={onlineRoomData}
             />
             <ScoreBoard
               scores={scores}
@@ -242,6 +439,15 @@ export const TicTacToeHome = () => {
                   </span>
                   <span className="text-sm sm:text-base">
                     {isXNext ? "X" : "O"}
+                    {gameMode === "online" && onlineRoomData && (
+                      <span className="text-xs ml-1 opacity-70">
+                        (
+                        {onlineRoomData.playerSymbol === (isXNext ? "X" : "O")
+                          ? "You"
+                          : "Opponent"}
+                        )
+                      </span>
+                    )}
                   </span>
                 </span>
               )}

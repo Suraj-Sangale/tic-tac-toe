@@ -3,7 +3,7 @@
  * Renders the 3x3 tic-tac-toe grid with cells and winning line
  */
 
-import { Board, Player } from "./types";
+import { Board, Player, RoomData } from "./types";
 import { GameCell } from "./GameCell";
 
 interface GameBoardProps {
@@ -11,9 +11,10 @@ interface GameBoardProps {
   winningLine: number[];
   animatedCells: Set<number>;
   winner: Player | "Draw" | null;
-  gameMode: "computer" | "player" | null;
+  gameMode: "computer" | "player" | "online" | null;
   isXNext: boolean;
   onCellClick: (index: number) => void;
+  onlineRoomData?: RoomData | null;
 }
 
 export const GameBoard = ({
@@ -24,7 +25,15 @@ export const GameBoard = ({
   gameMode,
   isXNext,
   onCellClick,
+  onlineRoomData,
 }: GameBoardProps) => {
+  // Determine if it's the current player's turn in online mode
+  const isMyTurn =
+    gameMode === "online" && onlineRoomData
+      ? (isXNext && onlineRoomData.playerSymbol === "X") ||
+        (!isXNext && onlineRoomData.playerSymbol === "O")
+      : true;
+
   return (
     <div className="grid grid-cols-3 gap-1 sm:gap-1.5 mb-2 sm:mb-3 relative p-1 w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] md:w-[360px] md:h-[360px] mx-auto lg:mx-0 flex-shrink-0">
       {/* Render 9 cells (3x3 grid) for the game board */}
@@ -34,9 +43,10 @@ export const GameBoard = ({
         const isDisabled =
           !!cell ||
           !!winner ||
-          (gameMode === "computer" && !isXNext);
+          (gameMode === "computer" && !isXNext) ||
+          (gameMode === "online" && !isMyTurn);
         const showHoverIndicator =
-          !winner && !cell && !(gameMode === "computer" && !isXNext);
+          !winner && !cell && !(gameMode === "computer" && !isXNext) && (gameMode !== "online" || isMyTurn);
 
         return (
           <GameCell
