@@ -35,6 +35,14 @@ app.prepare().then(() => {
   io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
 
+    // Debug: Log all incoming events
+    const originalOnevent = socket.onevent;
+    socket.onevent = function (packet) {
+      const args = packet.data || [];
+      console.log("Socket event received:", args[0], args.slice(1));
+      originalOnevent.call(this, packet);
+    };
+
     // Create a new room
     socket.on("create-room", (callback) => {
       const roomId = generateRoomId();
@@ -61,6 +69,7 @@ app.prepare().then(() => {
 
     // Join an existing room
     socket.on("join-room", (roomId, callback) => {
+      console.log('roomId', roomId)
       const room = rooms.get(roomId);
 
       if (!room) {
@@ -164,6 +173,44 @@ app.prepare().then(() => {
         board: room.board,
         currentTurn: room.currentTurn,
       });
+    });
+
+    // Handle game start
+    socket.on("start-game", ({ roomId }) => {
+      console.log("Server received start-game event", { roomId, socketId: socket.id });
+      const room = rooms.get(roomId);
+      if (!room) {
+        console.log("Room not found:", roomId);
+        return;
+      }
+
+      // Verify the player is the host
+      const playerData = room.players.find((p) => p.id === socket.id);
+      console.log("Player data:", playerData, "Room players:", room.players);
+      if (!playerData || !playerData.isHost) {
+        console.log("Only host can start the game");
+        return;
+      }
+
+      // Ensure both players are in the room
+      if (room.players.length < 2) {
+        console.log("Need both players to start the game. Current players:", room.players.length);
+        return;
+      }
+
+      // Initialize fresh game state
+      room.board = Array(9).fill(null);
+      room.currentTurn = "X";
+      room.winner = null;
+      room.winningLine = [];
+
+      // Notify all players that the game has started
+      console.log(`Emitting game-started to room: ${roomId}`);
+      io.to(roomId).emit("game-started", {
+        board: room.board,
+        currentTurn: room.currentTurn,
+      });
+      console.log(`Game started in room: ${roomId}`);
     });
 
     // Handle disconnect

@@ -15,6 +15,7 @@ interface UseWebSocketReturn {
   joinRoom: (roomId: string) => Promise<RoomData | null>;
   makeMove: (index: number, player: Player) => void;
   resetGame: () => void;
+  startGame: (roomId: string) => void;
   error: string | null;
 }
 
@@ -113,6 +114,34 @@ export const useWebSocket = (): UseWebSocketReturn => {
     socket.emit("reset-game", { roomId: roomData.roomId });
   }, [socket, roomData]);
 
+  const startGame = useCallback((roomId: string) => {
+    console.log("startGame called", { 
+      hasSocket: !!socket, 
+      roomId, 
+      socketConnected: socket?.connected,
+      socketId: socket?.id 
+    });
+    if (!socket) {
+      console.error("Cannot start game: socket is null");
+      return;
+    }
+    if (!socket.connected) {
+      console.error("Cannot start game: socket is not connected");
+      return;
+    }
+    if (!roomId) {
+      console.error("Cannot start game: roomId is missing");
+      return;
+    }
+    console.log("Emitting start-game event with roomId:", roomId);
+    try {
+      socket.emit("start-game", { roomId });
+      console.log("start-game event emitted successfully");
+    } catch (error) {
+      console.error("Error emitting start-game event:", error);
+    }
+  }, [socket]);
+
   return {
     socket,
     roomData,
@@ -121,6 +150,7 @@ export const useWebSocket = (): UseWebSocketReturn => {
     joinRoom,
     makeMove,
     resetGame,
+    startGame,
     error,
   };
 };

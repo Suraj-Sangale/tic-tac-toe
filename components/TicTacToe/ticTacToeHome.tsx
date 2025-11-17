@@ -45,6 +45,7 @@ export const TicTacToeHome = () => {
     roomData,
     makeMove: wsMakeMove,
     resetGame: wsResetGame,
+    startGame: wsStartGame,
   } = useWebSocket();
 
   // Game state management
@@ -62,6 +63,7 @@ export const TicTacToeHome = () => {
   const [onlineRoomData, setOnlineRoomData] = useState<RoomData | null>(null);
   const [showInviteScreen, setShowInviteScreen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [bothPlayersReady, setBothPlayersReady] = useState(false);
 
   // Processes a move on the board
   // @param index - The cell index (0-8) where the move is being made
@@ -142,7 +144,6 @@ export const TicTacToeHome = () => {
   // Handles cell click events
   //  * @param index - The clicked cell index (0-8)
 
-  console.log("onlineRoomData", onlineRoomData);
   const handleCellClick = (index: number) => {
     if (gameMode === "online") {
       // Online mode: send move via WebSocket
@@ -184,6 +185,7 @@ export const TicTacToeHome = () => {
     setScoreAnimation({ type: null });
     setOnlineRoomData(null);
     setShowInviteScreen(false);
+    setBothPlayersReady(false);
   };
 
   // Handles online mode selection
@@ -197,6 +199,53 @@ export const TicTacToeHome = () => {
     setOnlineRoomData(roomData);
     // Don't hide invite screen - let it show the "Room Created/Joined" UI
     // The invite screen will stay visible to show room info
+  };
+
+  // Manually start the game (called when Start Game button is clicked)
+  const handleStartGame = () => {
+    console.log("handleStartGame called", { 
+      gameMode, 
+      onlineRoomData,
+      socket: !!socket,
+      socketConnected: socket?.connected,
+      socketId: socket?.id
+    });
+    if (gameMode === "online" && onlineRoomData) {
+      // Check socket connection first
+      if (!socket) {
+        console.error("Socket is not available");
+        setError("Not connected to server. Please refresh the page.");
+        return;
+      }
+      if (!socket.connected) {
+        console.error("Socket is not connected");
+        setError("Connection lost. Please refresh the page.");
+        return;
+      }
+      
+      // Update local state immediately for better UX
+      setBothPlayersReady(true);
+      setShowInviteScreen(false);
+      setError(null);
+      setBoard(Array(9).fill(null));
+      setIsXNext(true);
+      setWinner(null);
+      setWinningLine([]);
+      setAnimatedCells(new Set());
+      // Emit WebSocket event to notify all players
+      console.log("Calling wsStartGame with roomId:", onlineRoomData.roomId);
+      wsStartGame(onlineRoomData.roomId);
+    } else {
+      // Fallback for non-online mode (shouldn't happen)
+      setBothPlayersReady(true);
+      setShowInviteScreen(false);
+      setError(null);
+      setBoard(Array(9).fill(null));
+      setIsXNext(true);
+      setWinner(null);
+      setWinningLine([]);
+      setAnimatedCells(new Set());
+    }
   };
 
   // WebSocket event handlers for online mode
@@ -260,7 +309,8 @@ export const TicTacToeHome = () => {
       setAnimatedCells(new Set());
     };
 
-    const handlePlayerJoined = (data?: { 
+    const handlePlayerJoined = (data?: {
+      roomId?: string;
       players?: Array<{ id: string }>;
       gameState?: {
         board: Board;
@@ -271,11 +321,26 @@ export const TicTacToeHome = () => {
     }) => {
       // Player joined notification (could show a toast)
       console.log("Player joined the room", data);
+
+      // Verify this event is for our room (if we have room data)
+      // If we don't have roomData yet, we'll still process it (might be the initial join)
+      if (
+        onlineRoomData &&
+        data?.roomId &&
+        data.roomId !== onlineRoomData.roomId
+      ) {
+        console.log("Ignoring player-joined event for different room");
+        return;
+      }
+
       // Auto-proceed to game when both players are ready
-      if (data?.players && data.players.length >= 2 && onlineRoomData) {
+      if (data?.players && data.players.length >= 2) {
+        console.log("Both players ready, starting game automatically");
+        // Mark that both players are ready
+        setBothPlayersReady(true);
         // Clear any previous errors
         setError(null);
-        
+
         // Both players are in the room, sync game state if provided
         if (data.gameState) {
           setBoard(data.gameState.board);
@@ -294,7 +359,7 @@ export const TicTacToeHome = () => {
           setWinningLine([]);
           setAnimatedCells(new Set());
         }
-        
+
         // Hide invite screen to proceed to game
         setShowInviteScreen(false);
       }
@@ -304,18 +369,42 @@ export const TicTacToeHome = () => {
       // Player left notification
       console.log("Player left the room");
       setError("Opponent disconnected");
+      setBothPlayersReady(false);
+      // Show invite screen again if opponent disconnects
+      setShowInviteScreen(true);
+    };
+
+    const handleGameStarted = (data: {
+      board: Board;
+      currentTurn: Player;
+    }) => {
+      console.log("Game started!", data);
+      // Mark that both players are ready
+      setBothPlayersReady(true);
+      // Clear any previous errors
+      setError(null);
+      // Initialize game state
+      setBoard(data.board);
+      setIsXNext(data.currentTurn === "X");
+      setWinner(null);
+      setWinningLine([]);
+      setAnimatedCells(new Set());
+      // Hide invite screen to proceed to game
+      setShowInviteScreen(false);
     };
 
     socket.on("move-made", handleMoveMade);
     socket.on("game-reset", handleGameReset);
     socket.on("player-joined", handlePlayerJoined);
     socket.on("player-left", handlePlayerLeft);
+    socket.on("game-started", handleGameStarted);
 
     return () => {
       socket.off("move-made", handleMoveMade);
       socket.off("game-reset", handleGameReset);
       socket.off("player-joined", handlePlayerJoined);
       socket.off("player-left", handlePlayerLeft);
+      socket.off("game-started", handleGameStarted);
     };
   }, [socket, gameMode, onlineRoomData]);
 
@@ -333,14 +422,19 @@ export const TicTacToeHome = () => {
       />
     );
   }
-
+  console.log("bothPlayersReady", bothPlayersReady);
   // Render invite screen for online mode
-  // Show it when user selects online mode OR when they haven't started playing yet
-  if (gameMode === "online" && (showInviteScreen || !onlineRoomData)) {
+  // Show it when user selects online mode, but hide it when both players are ready
+  if (
+    gameMode === "online" &&
+    !bothPlayersReady &&
+    (showInviteScreen || !onlineRoomData)
+  ) {
     return (
       <InviteScreen
         onBack={backToMenu}
         onRoomReady={handleRoomReady}
+        onStartGame={handleStartGame}
       />
     );
   }

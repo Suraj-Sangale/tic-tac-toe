@@ -4,7 +4,14 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { FaLink, FaCopy, FaCheck, FaArrowLeft, FaUsers } from "react-icons/fa";
+import {
+  FaLink,
+  FaCopy,
+  FaCheck,
+  FaArrowLeft,
+  FaUsers,
+  FaPlay,
+} from "react-icons/fa";
 import { AnimatedBackground } from "./AnimatedBackground";
 import { useWebSocket } from "./useWebSocket";
 import { RoomData } from "./types";
@@ -12,9 +19,14 @@ import { RoomData } from "./types";
 interface InviteScreenProps {
   onBack: () => void;
   onRoomReady: (roomData: RoomData) => void;
+  onStartGame?: () => void;
 }
 
-export const InviteScreen = ({ onBack, onRoomReady }: InviteScreenProps) => {
+export const InviteScreen = ({
+  onBack,
+  onRoomReady,
+  onStartGame,
+}: InviteScreenProps) => {
   const {
     createRoom,
     joinRoom,
@@ -64,37 +76,19 @@ export const InviteScreen = ({ onBack, onRoomReady }: InviteScreenProps) => {
     setIsJoining(false);
   }, [inputRoomId, joinRoom, socketError]);
 
-  useEffect(() => {
-    // Auto-create room when component mounts and socket is connected
-    if (isConnected && !roomData) {
-      handleCreateRoom();
-    }
-  }, [isConnected, roomData, handleCreateRoom]);
-
-  const copyToClipboard = () => {
-    const url = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const shareLink = () => {
-    const url = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
-    if (navigator.share) {
-      navigator.share({
-        title: "Join my TicTacToe game!",
-        text: "Let's play TicTacToe together!",
-        url: url,
-      });
-    } else {
-      copyToClipboard();
-    }
-  };
-
-  // Check for room ID in URL (for joining)
+  // Check for room ID in URL first (for joining) - this should run before auto-create
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get("room");
+    console.log(
+      "room condition=================",
+      roomParam &&
+        !roomId &&
+        !isCreating &&
+        !isJoining &&
+        isConnected &&
+        !roomData
+    );
     if (
       roomParam &&
       !roomId &&
@@ -130,6 +124,42 @@ export const InviteScreen = ({ onBack, onRoomReady }: InviteScreenProps) => {
     joinRoom,
     socketError,
   ]);
+
+  // Auto-create room when component mounts and socket is connected
+  // Only if there's no room ID in the URL (to avoid race condition)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get("room");
+
+    // Only auto-create if:
+    // 1. Connected to socket
+    // 2. No room data yet
+    // 3. Not currently joining
+    // 4. No room ID in URL (if there is one, the join effect above should handle it)
+    if (isConnected && !roomData && !isJoining && !roomParam) {
+      handleCreateRoom();
+    }
+  }, [isConnected, roomData, isJoining, handleCreateRoom]);
+
+  const copyToClipboard = () => {
+    const url = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const shareLink = () => {
+    const url = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
+    if (navigator.share) {
+      navigator.share({
+        title: "Join my TicTacToe game!",
+        text: "Let's play TicTacToe together!",
+        url: url,
+      });
+    } else {
+      copyToClipboard();
+    }
+  };
 
   // Notify parent when room is ready
   useEffect(() => {
@@ -221,10 +251,24 @@ export const InviteScreen = ({ onBack, onRoomReady }: InviteScreenProps) => {
               <FaUsers className="w-4 h-4" />
               <span>Players: {playersCount}/2</span>
             </div>
-            {playersCount >= 2 && roomData.isHost && (
-              <p className="text-green-300 text-sm font-semibold mb-2">
-                Both players ready! The game will start automatically...
-              </p>
+            {playersCount >= 2 && (
+              <>
+                <p className="text-green-300 text-sm font-semibold mb-4">
+                  Both players ready!{" "}
+                  {roomData.isHost
+                    ? "Click to start the game"
+                    : "Waiting for host to start..."}
+                </p>
+                {roomData.isHost && onStartGame && (
+                  <button
+                    onClick={onStartGame}
+                    className="w-full py-4 px-6 bg-green-500/80 hover:bg-green-500 backdrop-blur-lg rounded-xl text-white font-semibold text-lg transition-all duration-300 border-2 border-green-400/50 hover:scale-105 active:scale-95 shadow-xl flex items-center justify-center gap-2"
+                  >
+                    <FaPlay className="w-5 h-5" />
+                    <span>Start Game</span>
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
