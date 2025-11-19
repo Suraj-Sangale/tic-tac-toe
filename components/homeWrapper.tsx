@@ -1,10 +1,11 @@
-import React from "react";
 import { TicTacToeHome } from "./TicTacToe/ticTacToeHome";
-
-export default function HomeWrapper() {
+type PageData = {
+  room: string;
+};
+export default function HomeWrapper({ pageData }: { pageData: PageData }) {
   return (
     <>
-      <TicTacToeHome />
+      <TicTacToeHome parentRoom={pageData.room} />
     </>
   );
 }
