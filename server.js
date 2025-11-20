@@ -34,7 +34,9 @@ app.prepare().then(() => {
 
   io.on("connection", (socket) => {
     console.log("Client connected:", socket.id);
-
+    socket.onAny((eventName, ...args) => {
+      console.log(`Received event: ${eventName}`, args);
+    });
     // Debug: Log all incoming events
     const originalOnevent = socket.onevent;
     socket.onevent = function (packet) {
@@ -42,7 +44,7 @@ app.prepare().then(() => {
       console.log("Socket event received:", args[0], args.slice(1));
       originalOnevent.call(this, packet);
     };
-
+    console.log("rooms", rooms);
     // Create a new room
     socket.on("create-room", (callback) => {
       const roomId = generateRoomId();
@@ -63,13 +65,19 @@ app.prepare().then(() => {
         isHost: true,
       });
 
-      if (callback) callback({ roomId, playerId: socket.id, playerSymbol: "X", isHost: true });
+      if (callback)
+        callback({
+          roomId,
+          playerId: socket.id,
+          playerSymbol: "X",
+          isHost: true,
+        });
       console.log(`Room created: ${roomId} by ${socket.id}`);
     });
 
     // Join an existing room
     socket.on("join-room", (roomId, callback) => {
-      console.log('roomId', roomId)
+      console.log("roomId", roomId);
       const room = rooms.get(roomId);
 
       if (!room) {
@@ -104,7 +112,7 @@ app.prepare().then(() => {
         roomId,
         players: room.players,
       };
-      
+
       // If both players are now in the room, include game state
       if (room.players.length === 2) {
         eventData.gameState = {
@@ -114,42 +122,90 @@ app.prepare().then(() => {
           winningLine: room.winningLine,
         };
       }
-      
+
       io.to(roomId).emit("player-joined", eventData);
 
-      if (callback) callback({ roomId, playerId: socket.id, playerSymbol: "O", isHost: false });
+      if (callback)
+        callback({
+          roomId,
+          playerId: socket.id,
+          playerSymbol: "O",
+          isHost: false,
+        });
       console.log(`Player ${socket.id} joined room: ${roomId}`);
     });
 
     // Handle game move
     socket.on("make-move", ({ roomId, index, player }) => {
+      console.log("🎮 Received make-move", {
+        roomId,
+        index,
+        player,
+        socketId: socket.id,
+      });
       const room = rooms.get(roomId);
 
-      if (!room) return;
+      if (!room) {
+        console.log("❌ Room not found:", roomId);
+        return;
+      }
 
       // Validate move
-      if (room.board[index] !== null) return;
-      if (room.currentTurn !== player) return;
-      if (room.winner) return;
+      if (room.board[index] !== null) {
+        console.log("❌ Cell already occupied:", index);
+        return;
+      }
+      if (room.currentTurn !== player) {
+        console.log("❌ Not player's turn", {
+          currentTurn: room.currentTurn,
+          attemptedPlayer: player,
+        });
+        return;
+      }
+      if (room.winner) {
+        console.log("❌ Game already ended");
+        return;
+      }
 
       // Check if it's the player's turn
       const playerData = room.players.find((p) => p.id === socket.id);
-      if (!playerData || playerData.symbol !== player) return;
+      if (!playerData) {
+        console.log("❌ Player not found in room", {
+          socketId: socket.id,
+          roomPlayers: room.players,
+        });
+        return;
+      }
+      if (playerData.symbol !== player) {
+        console.log("❌ Player symbol mismatch", {
+          playerSymbol: playerData.symbol,
+          attemptedPlayer: player,
+        });
+        return;
+      }
 
       // Update board
       room.board[index] = player;
+      console.log("✅ Move accepted, updating board", {
+        index,
+        player,
+        newBoard: room.board,
+      });
 
       // Check for winner
       const result = checkWinner(room.board);
       if (result.winner) {
         room.winner = result.winner;
         room.winningLine = result.line;
+        console.log("🏆 Winner found:", result.winner);
       } else {
         // Switch turn
         room.currentTurn = room.currentTurn === "X" ? "O" : "X";
+        console.log("🔄 Turn switched to:", room.currentTurn);
       }
 
       // Broadcast move to all players in room
+      console.log("📢 Broadcasting move-made to room:", roomId);
       io.to(roomId).emit("move-made", {
         board: room.board,
         currentTurn: room.currentTurn,
@@ -176,25 +232,64 @@ app.prepare().then(() => {
     });
 
     // Handle game start
-    socket.on("start-game", ({ roomId }) => {
-      console.log("Server received start-game event", { roomId, socketId: socket.id });
+    socket.on("start-game", (data, callback) => {
+      console.log("🎮 Server received start-game event", {
+        data,
+        socketId: socket.id,
+        dataType: typeof data,
+        hasCallback: typeof callback === "function",
+      });
+
+      // Handle both object and direct roomId formats
+      const roomId =
+        typeof data === "object" && data !== null ? data.roomId : data;
+
+      if (!roomId) {
+        console.error("❌ start-game event missing roomId", data);
+        if (typeof callback === "function") {
+          callback({ error: "Missing roomId" });
+        }
+        return;
+      }
+
+      console.log("🔍 Processing start-game for roomId:", roomId);
       const room = rooms.get(roomId);
       if (!room) {
-        console.log("Room not found:", roomId);
+        console.log(
+          "❌ Room not found:",
+          roomId,
+          "Available rooms:",
+          Array.from(rooms.keys())
+        );
+        if (typeof callback === "function") {
+          callback({ error: "Room not found" });
+        }
         return;
       }
 
       // Verify the player is the host
       const playerData = room.players.find((p) => p.id === socket.id);
-      console.log("Player data:", playerData, "Room players:", room.players);
+      console.log("👤 Player data:", playerData, "Room players:", room.players);
       if (!playerData || !playerData.isHost) {
-        console.log("Only host can start the game");
+        console.log(
+          "❌ Only host can start the game. Player isHost:",
+          playerData?.isHost
+        );
+        if (typeof callback === "function") {
+          callback({ error: "Only host can start the game" });
+        }
         return;
       }
 
       // Ensure both players are in the room
       if (room.players.length < 2) {
-        console.log("Need both players to start the game. Current players:", room.players.length);
+        console.log(
+          "❌ Need both players to start the game. Current players:",
+          room.players.length
+        );
+        if (typeof callback === "function") {
+          callback({ error: "Need both players to start" });
+        }
         return;
       }
 
@@ -205,12 +300,69 @@ app.prepare().then(() => {
       room.winningLine = [];
 
       // Notify all players that the game has started
-      console.log(`Emitting game-started to room: ${roomId}`);
+      console.log(`📢 Emitting game-started to room: ${roomId}`);
       io.to(roomId).emit("game-started", {
         board: room.board,
         currentTurn: room.currentTurn,
       });
-      console.log(`Game started in room: ${roomId}`);
+      console.log(`✅ Game started in room: ${roomId}`);
+
+      // Send acknowledgment
+      if (typeof callback === "function") {
+        callback({ success: true, roomId });
+      }
+    });
+
+    socket.on("delete-room", (roomId = "", callback) => {
+      console.log("🎮 Server received start-game event", {
+        data,
+        socketId: socket.id,
+        dataType: typeof data,
+        hasCallback: typeof callback === "function",
+      });
+
+      // Handle both object and direct roomId formats
+
+      if (!roomId) {
+        console.error("❌ start-game event missing roomId", data);
+        if (typeof callback === "function") {
+          callback({ error: "Missing roomId" });
+        }
+        return;
+      }
+
+      const room = rooms.get(roomId);
+      if (!room) {
+        console.log(
+          "❌ Room not found:",
+          roomId,
+          "Available rooms:",
+          Array.from(rooms.keys())
+        );
+        if (typeof callback === "function") {
+          callback({ error: "Room not found" });
+        }
+        return;
+      }
+
+      // Initialize fresh game state
+      room.board = Array(9).fill(null);
+      room.currentTurn = "X";
+      room.winner = null;
+      room.winningLine = [];
+
+      // Notify all players that the game has started
+      console.log(`📢 Emitting game-started to room: ${roomId}`);
+      io.to(roomId).emit("game-started", {
+        board: room.board,
+        currentTurn: room.currentTurn,
+      });
+
+      // Send acknowledgment rooms.delete(roomId);
+      console.log(`Room deleted: ${roomId}`);
+      // if (typeof callback === "function") {
+      //   callback({ success: true, roomId });
+      // }
     });
 
     // Handle disconnect
@@ -222,7 +374,7 @@ app.prepare().then(() => {
         const playerIndex = room.players.findIndex((p) => p.id === socket.id);
         if (playerIndex !== -1) {
           room.players.splice(playerIndex, 1);
-          
+
           // Notify other players
           socket.to(roomId).emit("player-left", {
             playerId: socket.id,
@@ -256,9 +408,14 @@ function generateRoomId() {
 // Check for winner (same logic as client)
 function checkWinner(board) {
   const WINNING_COMBINATIONS = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
-    [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
-    [0, 4, 8], [2, 4, 6], // diagonals
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8], // rows
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8], // columns
+    [0, 4, 8],
+    [2, 4, 6], // diagonals
   ];
 
   for (const [a, b, c] of WINNING_COMBINATIONS) {
@@ -273,4 +430,3 @@ function checkWinner(board) {
 
   return { winner: null, line: [] };
 }
-
