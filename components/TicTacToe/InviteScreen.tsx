@@ -13,32 +13,36 @@ import {
   FaPlay,
 } from "react-icons/fa";
 import { AnimatedBackground } from "./AnimatedBackground";
-import { useWebSocket } from "./useWebSocket";
 import { RoomData } from "./types";
+import { Socket } from "socket.io-client";
 
 interface InviteScreenProps {
   onBack: () => void;
   onRoomReady: (roomData: RoomData) => void;
   onStartGame?: () => void;
+  createRoom: () => Promise<RoomData | null>;
+  joinRoom: (roomId: string) => Promise<RoomData | null>;
+  isConnected: boolean;
+  socketError: string | null;
+  socket: Socket | null;
 }
 
 export const InviteScreen = ({
   onBack,
   onRoomReady,
   onStartGame,
+  createRoom,
+  joinRoom,
+  isConnected,
+  socketError,
+  socket,
 }: InviteScreenProps) => {
-  const {
-    createRoom,
-    joinRoom,
-    isConnected,
-    error: socketError,
-    socket,
-  } = useWebSocket();
   const [roomId, setRoomId] = useState<string>("");
   const [inputRoomId, setInputRoomId] = useState<string>("");
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedFullLink, setCopiedFullLink] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [roomData, setRoomData] = useState<RoomData | null>(null);
   const [playersCount, setPlayersCount] = useState<number>(1);
@@ -47,7 +51,9 @@ export const InviteScreen = ({
     setIsCreating(true);
     setError(null);
 
+    console.log("Creating room...");
     const data = await createRoom();
+    console.log("Create room result:", data);
     if (data) {
       setRoomData(data);
       setRoomId(data.roomId);
@@ -66,10 +72,15 @@ export const InviteScreen = ({
     setIsJoining(true);
     setError(null);
 
+    console.log("Attempting to join room:", inputRoomId.trim().toUpperCase());
     const data = await joinRoom(inputRoomId.trim().toUpperCase());
+    console.log("Join room result:", data);
     if (data) {
       setRoomData(data);
       setRoomId(data.roomId);
+      if (!data.isHost) onRoomReady(data);
+      // to ser data
+      // onRoomReady will be called by the useEffect when roomData changes
     } else {
       setError(socketError || "Failed to join room. Please check the room ID.");
     }
@@ -81,13 +92,15 @@ export const InviteScreen = ({
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get("room");
     console.log(
-      "room condition=================",
-      roomParam &&
-        !roomId &&
-        !isCreating &&
-        !isJoining &&
-        isConnected &&
-        !roomData
+      "URL join check:",
+      {
+        roomParam,
+        hasRoomId: !!roomId,
+        isCreating,
+        isJoining,
+        isConnected,
+        hasRoomData: !!roomData
+      }
     );
     if (
       roomParam &&
@@ -102,10 +115,13 @@ export const InviteScreen = ({
       const joinByUrl = async () => {
         setIsJoining(true);
         setError(null);
+        console.log("Joining room from URL:", roomParam.toUpperCase());
         const data = await joinRoom(roomParam.toUpperCase());
+        console.log("URL join result:", data);
         if (data) {
           setRoomData(data);
           setRoomId(data.roomId);
+          // onRoomReady will be called by the useEffect when roomData changes
         } else {
           setError(
             socketError || "Failed to join room. Please check the room ID."
@@ -127,25 +143,31 @@ export const InviteScreen = ({
 
   // Auto-create room when component mounts and socket is connected
   // Only if there's no room ID in the URL (to avoid race condition)
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const roomParam = urlParams.get("room");
+  // useEffect(() => {
+  //   const urlParams = new URLSearchParams(window.location.search);
+  //   const roomParam = urlParams.get("room");
 
-    // Only auto-create if:
-    // 1. Connected to socket
-    // 2. No room data yet
-    // 3. Not currently joining
-    // 4. No room ID in URL (if there is one, the join effect above should handle it)
-    if (isConnected && !roomData && !isJoining && !roomParam) {
-      handleCreateRoom();
-    }
-  }, [isConnected, roomData, isJoining, handleCreateRoom]);
+  //   // Only auto-create if:
+  //   // 1. Connected to socket
+  //   // 2. No room data yet
+  //   // 3. Not currently joining
+  //   // 4. No room ID in URL (if there is one, the join effect above should handle it)
+  //   if (isConnected && !roomData && !isJoining && !roomParam) {
+  //     handleCreateRoom();
+  //   }
+  // }, [isConnected, roomData, isJoining, handleCreateRoom]);
 
-  const copyToClipboard = () => {
+  const copyToClipboard = (copyFullLink = false) => {
     const url = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard.writeText(copyFullLink ? url : roomId);
+    console.log('copyFullLink', copyFullLink)
+    if (copyFullLink) {
+      setCopiedFullLink(true);
+      setTimeout(() => setCopiedFullLink(false), 2000);
+    } else {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1000);
+    }
   };
 
   const shareLink = () => {
@@ -165,9 +187,10 @@ export const InviteScreen = ({
   useEffect(() => {
     if (roomData) {
       // Small delay to ensure UI updates
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         onRoomReady(roomData);
       }, 100);
+      return () => clearTimeout(timer);
     }
   }, [roomData, onRoomReady]);
 
@@ -190,6 +213,7 @@ export const InviteScreen = ({
       socket.off("player-joined", handlePlayerJoined);
     };
   }, [socket, roomData]);
+  console.log('roomData', roomData)
 
   if (roomData) {
     return (
@@ -197,6 +221,13 @@ export const InviteScreen = ({
         <AnimatedBackground />
         <div className="backdrop-blur-xl bg-white/10 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 lg:p-12 shadow-2xl border-2 border-white/30 max-w-md w-full relative z-10 menu-entrance mx-auto">
           <div className="text-center mb-6">
+            <button
+              onClick={onBack}
+              className="mb-4 px-3 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-lg text-white font-medium transition-all duration-300 border-2 border-white/30 text-sm hover:scale-105 active:scale-95 flex items-center gap-2"
+            >
+              <FaArrowLeft className="w-4 h-4" />
+              <span>Back</span>
+            </button>
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 drop-shadow-2xl">
               {roomData.isHost ? "Room Created!" : "Room Joined!"}
             </h2>
@@ -210,7 +241,7 @@ export const InviteScreen = ({
                     {roomId}
                   </code>
                   <button
-                    onClick={copyToClipboard}
+                    onClick={() => copyToClipboard()}
                     className="px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all duration-300 flex items-center gap-2 text-white text-sm"
                   >
                     {copied ? (
@@ -227,11 +258,20 @@ export const InviteScreen = ({
                   </button>
                 </div>
                 <button
-                  onClick={copyToClipboard}
+                  onClick={() => copyToClipboard(true)}
                   className="w-full py-3 px-6 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-xl text-white font-semibold text-base transition-all duration-300 border-2 border-white/30 hover:scale-105 active:scale-95 shadow-xl flex items-center justify-center gap-2 mb-4"
                 >
-                  <FaCopy className="w-4 h-4" />
-                  <span>Copy Link</span>
+                  {copiedFullLink ? (
+                    <>
+                      <FaCheck className="w-4 h-4" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaCopy className="w-4 h-4" />
+                      <span>Copy</span>
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={shareLink}

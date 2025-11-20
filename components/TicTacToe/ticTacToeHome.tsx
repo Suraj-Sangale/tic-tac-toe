@@ -35,9 +35,10 @@ import { ResultModal } from "./ResultModal";
 import { AnimatedBackground } from "./AnimatedBackground";
 import { useWebSocket } from "./useWebSocket";
 
-export const TicTacToeHome = () => {
+export const TicTacToeHome = ({ parentRoom = "" }) => {
   // Initialize animations
   useGameAnimations();
+  console.log('parentRoom', parentRoom)
 
   // WebSocket for online mode
   const {
@@ -46,6 +47,10 @@ export const TicTacToeHome = () => {
     makeMove: wsMakeMove,
     resetGame: wsResetGame,
     startGame: wsStartGame,
+    createRoom: wsCreateRoom,
+    joinRoom: wsJoinRoom,
+    isConnected: wsIsConnected,
+    error: wsError,
   } = useWebSocket();
 
   // Game state management
@@ -145,13 +150,27 @@ export const TicTacToeHome = () => {
   //  * @param index - The clicked cell index (0-8)
 
   const handleCellClick = (index: number) => {
+    // console.log('index', index, gameMode,);
     if (gameMode === "online") {
       // Online mode: send move via WebSocket
+      // console.log('!onlineRoomData', !onlineRoomData)
       if (!onlineRoomData) return;
-      const player = onlineRoomData.playerSymbol;
-      // Only allow moves if it's the player's turn
+
+      // console.log('board[index] || winner', board[index], winner)
+      // Validate: cell must be empty and game must not be over
       if (board[index] || winner) return;
-      wsMakeMove(index, player);
+
+      // Validate: it must be the player's turn
+      const player = onlineRoomData.playerSymbol;
+      const isMyTurn = (isXNext && player === "X") || (!isXNext && player === "O");
+      // console.log('!isMyTurn', !isMyTurn)
+      if (!isMyTurn) {
+        console.log("Not your turn", { isXNext, player, currentTurn: isXNext ? "X" : "O" });
+        return;
+      }
+
+      console.log("Making move", { index, player, isXNext, socketId: socket?.id, roomId: onlineRoomData.roomId });
+      wsMakeMove(index, player, onlineRoomData.roomId);
     } else {
       // Local mode: process move locally
       const player = isXNext ? "X" : "O";
@@ -164,7 +183,7 @@ export const TicTacToeHome = () => {
   const resetGame = () => {
     if (gameMode === "online" && onlineRoomData) {
       // Online mode: send reset via WebSocket
-      wsResetGame();
+      wsResetGame(onlineRoomData.roomId);
     } else {
       // Local mode: reset locally
       setBoard(Array(9).fill(null));
@@ -195,16 +214,17 @@ export const TicTacToeHome = () => {
   };
 
   // Called when room is ready (created or joined)
-  const handleRoomReady = (roomData: RoomData) => {
+  const handleRoomReady = useCallback((roomData: RoomData) => {
+    console.log("handleRoomReady called with:", roomData);
     setOnlineRoomData(roomData);
     // Don't hide invite screen - let it show the "Room Created/Joined" UI
     // The invite screen will stay visible to show room info
-  };
+  }, []);
 
   // Manually start the game (called when Start Game button is clicked)
   const handleStartGame = () => {
-    console.log("handleStartGame called", { 
-      gameMode, 
+    console.log("handleStartGame called", {
+      gameMode,
       onlineRoomData,
       socket: !!socket,
       socketConnected: socket?.connected,
@@ -222,7 +242,7 @@ export const TicTacToeHome = () => {
         setError("Connection lost. Please refresh the page.");
         return;
       }
-      
+
       // Update local state immediately for better UX
       setBothPlayersReady(true);
       setShowInviteScreen(false);
@@ -422,7 +442,6 @@ export const TicTacToeHome = () => {
       />
     );
   }
-  console.log("bothPlayersReady", bothPlayersReady);
   // Render invite screen for online mode
   // Show it when user selects online mode, but hide it when both players are ready
   if (
@@ -435,6 +454,11 @@ export const TicTacToeHome = () => {
         onBack={backToMenu}
         onRoomReady={handleRoomReady}
         onStartGame={handleStartGame}
+        createRoom={wsCreateRoom}
+        joinRoom={wsJoinRoom}
+        isConnected={wsIsConnected}
+        socketError={wsError}
+        socket={socket}
       />
     );
   }
@@ -472,8 +496,8 @@ export const TicTacToeHome = () => {
                 {gameMode === "computer"
                   ? "vs Computer"
                   : gameMode === "online"
-                  ? "Online Multiplayer"
-                  : "vs Player"}
+                    ? "Online Multiplayer"
+                    : "vs Player"}
               </span>
             </h2>
           </div>

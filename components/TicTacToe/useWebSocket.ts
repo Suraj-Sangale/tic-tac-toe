@@ -13,8 +13,8 @@ interface UseWebSocketReturn {
   isConnected: boolean;
   createRoom: () => Promise<RoomData | null>;
   joinRoom: (roomId: string) => Promise<RoomData | null>;
-  makeMove: (index: number, player: Player) => void;
-  resetGame: () => void;
+  makeMove: (index: number, player: Player, roomId: string) => void;
+  resetGame: (roomId: string) => void;
   startGame: (roomId: string) => void;
   error: string | null;
 }
@@ -27,29 +27,60 @@ export const useWebSocket = (): UseWebSocketReturn => {
 
   useEffect(() => {
     // Initialize socket connection
-    const socketInstance = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000", {
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000";
+    console.log("Initializing socket connection to:", socketUrl);
+    
+    const socketInstance = io(socketUrl, {
       transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
     });
 
     socketInstance.on("connect", () => {
-      console.log("Connected to server");
+      console.log("✅ Connected to server", { 
+        socketId: socketInstance.id, 
+        connected: socketInstance.connected,
+        url: socketUrl 
+      });
       setIsConnected(true);
       setError(null);
     });
 
-    socketInstance.on("disconnect", () => {
-      console.log("Disconnected from server");
+    socketInstance.on("disconnect", (reason) => {
+      console.log("❌ Disconnected from server", { reason });
       setIsConnected(false);
     });
 
     socketInstance.on("connect_error", (err) => {
-      console.error("Connection error:", err);
+      console.error("❌ Connection error:", err);
       setError("Failed to connect to server");
+    });
+
+    socketInstance.on("reconnect", (attemptNumber) => {
+      console.log("🔄 Reconnected to server", { attemptNumber });
+      setIsConnected(true);
+      setError(null);
+    });
+
+    socketInstance.on("reconnect_error", (err) => {
+      console.error("❌ Reconnection error:", err);
+    });
+
+    socketInstance.on("reconnect_failed", () => {
+      console.error("❌ Reconnection failed");
+      setError("Failed to reconnect to server");
+    });
+
+    // Test event listener to verify socket is working
+    socketInstance.onAny((eventName, ...args) => {
+      console.log("📨 Socket received event:", eventName, args);
     });
 
     setSocket(socketInstance);
 
     return () => {
+      console.log("Cleaning up socket connection");
       socketInstance.disconnect();
     };
   }, []);
@@ -113,32 +144,49 @@ export const useWebSocket = (): UseWebSocketReturn => {
     if (!socket || !roomData) return;
     socket.emit("reset-game", { roomId: roomData.roomId });
   }, [socket, roomData]);
+  const deleteRoom = useCallback(() => {
+    if (!socket || !roomData) return;
+    socket.emit("reset-game", { roomId: roomData.roomId });
+  }, [socket, roomData]);
 
   const startGame = useCallback((roomId: string) => {
-    console.log("startGame called", { 
+    console.log("🚀 startGame called", { 
       hasSocket: !!socket, 
       roomId, 
       socketConnected: socket?.connected,
-      socketId: socket?.id 
+      socketId: socket?.id,
+      socketDisconnected: socket?.disconnected
     });
     if (!socket) {
-      console.error("Cannot start game: socket is null");
+      console.error("❌ Cannot start game: socket is null");
       return;
     }
     if (!socket.connected) {
-      console.error("Cannot start game: socket is not connected");
+      console.error("❌ Cannot start game: socket is not connected. Socket state:", {
+        connected: socket.connected,
+        disconnected: socket.disconnected,
+        id: socket.id
+      });
       return;
     }
     if (!roomId) {
-      console.error("Cannot start game: roomId is missing");
+      console.error("❌ Cannot start game: roomId is missing");
       return;
     }
-    console.log("Emitting start-game event with roomId:", roomId);
+    console.log("📤 Emitting start-game event with roomId:", roomId);
     try {
-      socket.emit("start-game", { roomId });
-      console.log("start-game event emitted successfully");
+      // Emit with acknowledgment to verify it reaches server
+      socket.emit("start-game", { roomId }, (response: any) => {
+        console.log("📥 Server acknowledgment for start-game:", response);
+      });
+      console.log("✅ start-game event emitted successfully");
+      
+      // Also log after a short delay to see if anything happens
+      setTimeout(() => {
+        console.log("⏱️ 2 seconds after emit - checking if event was processed");
+      }, 2000);
     } catch (error) {
-      console.error("Error emitting start-game event:", error);
+      console.error("❌ Error emitting start-game event:", error);
     }
   }, [socket]);
 
