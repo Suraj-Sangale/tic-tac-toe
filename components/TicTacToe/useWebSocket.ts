@@ -27,7 +27,7 @@ export const useWebSocket = (): UseWebSocketReturn => {
 
   useEffect(() => {
     // Initialize socket connection
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000";
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL;
     console.log("Initializing socket connection to:", socketUrl);
 
     const socketInstance = io(socketUrl, {
