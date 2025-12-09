@@ -38,7 +38,7 @@ import { useWebSocket } from "./useWebSocket";
 export const TicTacToeHome = ({ parentRoom = "" }) => {
   // Initialize animations
   useGameAnimations();
-  console.log('parentRoom', parentRoom)
+  // console.log('parentRoom', parentRoom)
 
   // WebSocket for online mode
   const {

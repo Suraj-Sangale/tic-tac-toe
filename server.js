@@ -44,7 +44,7 @@ app.prepare().then(() => {
       console.log("Socket event received:", args[0], args.slice(1));
       originalOnevent.call(this, packet);
     };
-    console.log("rooms", rooms);
+    // console.log("rooms", rooms);
     // Create a new room
     socket.on("create-room", (callback) => {
       const roomId = generateRoomId();
