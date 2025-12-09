@@ -29,7 +29,7 @@ export const useWebSocket = (): UseWebSocketReturn => {
     // Initialize socket connection
     const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000";
     console.log("Initializing socket connection to:", socketUrl);
-    
+
     const socketInstance = io(socketUrl, {
       transports: ["websocket", "polling"],
       reconnection: true,
@@ -38,10 +38,10 @@ export const useWebSocket = (): UseWebSocketReturn => {
     });
 
     socketInstance.on("connect", () => {
-      console.log("✅ Connected to server", { 
-        socketId: socketInstance.id, 
+      console.log("✅ Connected to server", {
+        socketId: socketInstance.id,
         connected: socketInstance.connected,
-        url: socketUrl 
+        url: socketUrl
       });
       setIsConnected(true);
       setError(null);
@@ -150,9 +150,9 @@ export const useWebSocket = (): UseWebSocketReturn => {
   }, [socket, roomData]);
 
   const startGame = useCallback((roomId: string) => {
-    console.log("🚀 startGame called", { 
-      hasSocket: !!socket, 
-      roomId, 
+    console.log("🚀 startGame called", {
+      hasSocket: !!socket,
+      roomId,
       socketConnected: socket?.connected,
       socketId: socket?.id,
       socketDisconnected: socket?.disconnected
@@ -180,7 +180,7 @@ export const useWebSocket = (): UseWebSocketReturn => {
         console.log("📥 Server acknowledgment for start-game:", response);
       });
       console.log("✅ start-game event emitted successfully");
-      
+
       // Also log after a short delay to see if anything happens
       setTimeout(() => {
         console.log("⏱️ 2 seconds after emit - checking if event was processed");
