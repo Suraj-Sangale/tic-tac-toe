@@ -468,8 +468,10 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
       <AnimatedBackground />
 
       <div className="backdrop-blur-xl bg-white/10 rounded-2xl sm:rounded-3xl p-2 sm:p-3 md:p-4 shadow-2xl border-2 border-white/30 w-4/5 relative z-10 flex flex-col lg:flex-row gap-2 sm:gap-3 md:gap-4 board-entrance mx-auto">
+
         <div className="flex-1 flex flex-col justify-around">
           {/* Header with back button and game mode indicator */}
+
           <div className="flex justify-between items-center mb-2 sm:mb-3 flex-wrap gap-2">
             <button
               onClick={backToMenu}
@@ -500,7 +502,31 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
                     : "vs Player"}
               </span>
             </h2>
+
           </div>
+          {!winner && <span className="flex items-center justify-center gap-1 sm:gap-2 flex-wrap mb-3">
+            <span className="text-xl sm:text-xl text-white font-extrabold ">Current Turn:</span>
+            <span className="flex items-center">
+              {gameMode === "online" && onlineRoomData && (
+                <span className="text-xl ml-1 opacity-70">
+                  {onlineRoomData.playerSymbol === (isXNext ? "X" : "O")
+                    ? "Your Turn"
+                    : "Opponent's Turn"}
+                </span>
+              )}
+              (
+              {isXNext ? (
+                <FaTimes className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />
+              ) : (
+                <FaCircle className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+              )}
+              )
+            </span>
+            <span className="text-sm sm:text-base">
+              {/* {isXNext ? "X" : "O"} */}
+
+            </span>
+          </span>}
 
           {/* Error message for online mode */}
           {error && gameMode === "online" && (
@@ -508,6 +534,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
               {error}
             </div>
           )}
+
 
           {/* Game Board and Score Board */}
           <div className="flex flex-row justify-evenly">
@@ -546,28 +573,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
                   )}
                 </span>
               ) : (
-                <span className="flex items-center justify-center gap-1 sm:gap-2 flex-wrap">
-                  <span className="text-xs sm:text-sm">Current Turn:</span>
-                  <span className="flex items-center">
-                    {isXNext ? (
-                      <FaTimes className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />
-                    ) : (
-                      <FaCircle className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
-                    )}
-                  </span>
-                  <span className="text-sm sm:text-base">
-                    {isXNext ? "X" : "O"}
-                    {gameMode === "online" && onlineRoomData && (
-                      <span className="text-xs ml-1 opacity-70">
-                        (
-                        {onlineRoomData.playerSymbol === (isXNext ? "X" : "O")
-                          ? "You"
-                          : "Opponent"}
-                        )
-                      </span>
-                    )}
-                  </span>
-                </span>
+                <></>
               )}
             </p>
             <button
