@@ -504,23 +504,23 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
             </h2>
 
           </div>
-          {!winner && <span className="flex items-center justify-center gap-1 sm:gap-2 flex-wrap mb-3">
-            <span className="text-xl sm:text-xl text-white font-extrabold ">Current Turn:</span>
+          {!winner && <span className="flex items-center justify-center gap-1 sm:gap-2 flex-wrap mb-3 text-xl sm:text-xl text-white font-bold drop-shadow-lg">
+            <span className=" ">Current Turn:</span>
             <span className="flex items-center">
               {gameMode === "online" && onlineRoomData && (
-                <span className="text-xl ml-1 opacity-70">
+                <span className="">
                   {onlineRoomData.playerSymbol === (isXNext ? "X" : "O")
                     ? "Your Turn"
                     : "Opponent's Turn"}
                 </span>
-              )}
-              (
+              )} &nbsp;-&nbsp;
+              {/* ( */}
               {isXNext ? (
                 <FaTimes className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />
               ) : (
                 <FaCircle className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
               )}
-              )
+              {/* ) */}
             </span>
             <span className="text-sm sm:text-base">
               {/* {isXNext ? "X" : "O"} */}
