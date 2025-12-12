@@ -5,6 +5,7 @@
 
 import { FaTimes, FaCircle, FaHandshake, FaTrophy } from "react-icons/fa";
 import { Player } from "./types";
+import Image from "next/image";
 
 interface ResultModalProps {
   winner: Player | "Draw" | null;
@@ -30,8 +31,7 @@ export const ResultModal = ({
       <div
         className="backdrop-blur-xl bg-white/20 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 shadow-2xl border-2 border-white/40 max-w-md w-full relative overflow-hidden my-auto"
         style={{
-          animation:
-            "fadeInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+          animation: "fadeInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -39,13 +39,12 @@ export const ResultModal = ({
         <div
           className="absolute inset-0 opacity-30"
           style={{
-            background: `radial-gradient(circle at center, ${
-              winner === "X"
-                ? "rgba(239, 68, 68, 0.5)"
-                : winner === "O"
+            background: `radial-gradient(circle at center, ${winner === "X"
+              ? "rgba(239, 68, 68, 0.5)"
+              : winner === "O"
                 ? "rgba(59, 130, 246, 0.5)"
                 : "rgba(234, 179, 8, 0.5)"
-            } 0%, transparent 70%)`,
+              } 0%, transparent 70%)`,
             animation: "pulseGlow 2s ease-in-out infinite",
           }}
         ></div>
@@ -85,8 +84,22 @@ export const ResultModal = ({
               "Well played both!"
             ) : (
               <>
-                <span>Congratulations!</span>
-                <FaTrophy className="w-5 h-5 sm:w-6 sm:h-6" />
+                <Image
+                  src="/images/trophy.png"
+                  width={40}
+                  height={40}
+                  alt="Trophy"
+                  className="w-8 h-8 sm:w-10 sm:h-10"
+                />
+                <span className="text-2xl">Congratulations!</span>
+                {/* <FaTrophy className="w-5 h-5 sm:w-6 sm:h-6" /> */}
+                <Image
+                  src="/images/trophy.png"
+                  width={40}
+                  height={40}
+                  alt="Trophy"
+                  className="w-8 h-8 sm:w-10 sm:h-10"
+                />
               </>
             )}
           </p>
@@ -114,4 +127,3 @@ export const ResultModal = ({
     </div>
   );
 };
-
