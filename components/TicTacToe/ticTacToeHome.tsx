@@ -103,7 +103,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
           setWinner(result.winner);
           setWinningLine(result.line);
           setShowResult(true);
-        }, 600);
+        }, 1000);
 
         // Trigger score animation based on winner
         if (result.winner === "X") {
@@ -594,6 +594,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
       <ResultModal
         winner={winner}
         onClose={() => setShowResult(false)}
+        showResult={showResult}
         onPlayAgain={() => {
           resetGame();
           setShowResult(false);

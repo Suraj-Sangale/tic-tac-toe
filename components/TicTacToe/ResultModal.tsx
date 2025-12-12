@@ -11,14 +11,16 @@ interface ResultModalProps {
   winner: Player | "Draw" | null;
   onClose: () => void;
   onPlayAgain: () => void;
+  showResult: boolean;
 }
 
 export const ResultModal = ({
   winner,
   onClose,
   onPlayAgain,
+  showResult,
 }: ResultModalProps) => {
-  if (!winner) return null;
+  if (!winner || !showResult) return null;
 
   return (
     <div
