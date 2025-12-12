@@ -508,12 +508,15 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
             <span className=" ">Current Turn:</span>
             <span className="flex items-center">
               {gameMode === "online" && onlineRoomData && (
-                <span className="">
-                  {onlineRoomData.playerSymbol === (isXNext ? "X" : "O")
-                    ? "Your Turn"
-                    : "Opponent's Turn"}
-                </span>
-              )} &nbsp;-&nbsp;
+                <>
+                  <span className="">
+                    {onlineRoomData.playerSymbol === (isXNext ? "X" : "O")
+                      ? "Your Turn"
+                      : "Opponent's Turn"}
+                  </span>
+                  &nbsp;-&nbsp;
+                </>
+              )}
               {/* ( */}
               {isXNext ? (
                 <FaTimes className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />
