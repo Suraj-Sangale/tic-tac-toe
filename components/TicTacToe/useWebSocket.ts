@@ -13,8 +13,8 @@ interface UseWebSocketReturn {
   isConnected: boolean;
   createRoom: () => Promise<RoomData | null>;
   joinRoom: (roomId: string) => Promise<RoomData | null>;
-  makeMove: (index: number, player: Player, roomId: string) => void;
-  resetGame: (roomId: string) => void;
+  makeMove: (index: number, player: Player, roomId?: string) => void;
+  resetGame: (roomId?: string) => void;
   startGame: (roomId: string) => void;
   error: string | null;
 }
@@ -27,9 +27,9 @@ export const useWebSocket = (): UseWebSocketReturn => {
 
   useEffect(() => {
     // Initialize socket connection
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL;
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000";
     console.log("Initializing socket connection to:", socketUrl);
-
+    
     const socketInstance = io(socketUrl, {
       transports: ["websocket", "polling"],
       reconnection: true,
@@ -38,10 +38,10 @@ export const useWebSocket = (): UseWebSocketReturn => {
     });
 
     socketInstance.on("connect", () => {
-      console.log("✅ Connected to server", {
-        socketId: socketInstance.id,
+      console.log("✅ Connected to server", { 
+        socketId: socketInstance.id, 
         connected: socketInstance.connected,
-        url: socketUrl
+        url: socketUrl 
       });
       setIsConnected(true);
       setError(null);
@@ -129,10 +129,19 @@ export const useWebSocket = (): UseWebSocketReturn => {
   );
 
   const makeMove = useCallback(
-    (index: number, player: Player) => {
-      if (!socket || !roomData) return;
+    (index: number, player: Player, roomId?: string) => {
+      if (!socket) {
+        console.error("Cannot make move: socket is null");
+        return;
+      }
+      const targetRoomId = roomId || roomData?.roomId;
+      if (!targetRoomId) {
+        console.error("Cannot make move: roomId is missing", { roomId, roomData });
+        return;
+      }
+      console.log("Emitting make-move", { roomId: targetRoomId, index, player, socketId: socket.id });
       socket.emit("make-move", {
-        roomId: roomData.roomId,
+        roomId: targetRoomId,
         index,
         player,
       });
@@ -140,19 +149,17 @@ export const useWebSocket = (): UseWebSocketReturn => {
     [socket, roomData]
   );
 
-  const resetGame = useCallback(() => {
-    if (!socket || !roomData) return;
-    socket.emit("reset-game", { roomId: roomData.roomId });
-  }, [socket, roomData]);
-  const deleteRoom = useCallback(() => {
-    if (!socket || !roomData) return;
-    socket.emit("reset-game", { roomId: roomData.roomId });
+  const resetGame = useCallback((roomId?: string) => {
+    if (!socket) return;
+    const targetRoomId = roomId || roomData?.roomId;
+    if (!targetRoomId) return;
+    socket.emit("reset-game", { roomId: targetRoomId });
   }, [socket, roomData]);
 
   const startGame = useCallback((roomId: string) => {
-    console.log("🚀 startGame called", {
-      hasSocket: !!socket,
-      roomId,
+    console.log("🚀 startGame called", { 
+      hasSocket: !!socket, 
+      roomId, 
       socketConnected: socket?.connected,
       socketId: socket?.id,
       socketDisconnected: socket?.disconnected
@@ -180,7 +187,7 @@ export const useWebSocket = (): UseWebSocketReturn => {
         console.log("📥 Server acknowledgment for start-game:", response);
       });
       console.log("✅ start-game event emitted successfully");
-
+      
       // Also log after a short delay to see if anything happens
       setTimeout(() => {
         console.log("⏱️ 2 seconds after emit - checking if event was processed");
