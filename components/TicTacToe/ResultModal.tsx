@@ -71,14 +71,24 @@ export const ResultModal = ({
         ></div>
 
         <div className="text-center relative z-10">
-          <div
-            className="mb-4 sm:mb-5 md:mb-6 inline-block"
+          <h2
+            className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-8 sm:mb-8 drop-shadow-2xl px-2"
             style={{
-              animation:
-                "cellPopIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, float 3s ease-in-out 1s infinite",
+              animation: "fadeInUp 0.6s ease-out 0.2s both",
+            }}
+          >
+            {titleText}
+          </h2>
+          <div
+            className="mb-2 sm:mb-1 md:mb-1 inline-block"
+            style={{
+              animation: isUserWinner
+                ? "cellPopIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, float 3s ease-in-out 1s infinite"
+                : "none",
               filter: "drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3))",
             }}
           >
+
             {winner === "X" ? (
               <FaTimes className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 text-red-400" />
             ) : winner === "O" ? (
@@ -87,14 +97,7 @@ export const ResultModal = ({
               <FaHandshake className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 text-yellow-400" />
             )}
           </div>
-          <h2
-            className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4 drop-shadow-2xl px-2"
-            style={{
-              animation: "fadeInUp 0.6s ease-out 0.2s both",
-            }}
-          >
-            {titleText}
-          </h2>
+
           <p
             className="text-white/90 text-base sm:text-lg md:text-xl mb-6 sm:mb-8 md:mb-10 font-medium px-2 flex items-center justify-center gap-2"
             style={{
@@ -168,6 +171,6 @@ export const ResultModal = ({
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
