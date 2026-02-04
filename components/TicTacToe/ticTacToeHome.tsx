@@ -428,6 +428,14 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
     };
   }, [socket, gameMode, onlineRoomData]);
 
+  // Determine the local player's symbol for personalized messages
+  const localPlayerSymbol: Player | null =
+    gameMode === "online" && onlineRoomData
+      ? onlineRoomData.playerSymbol
+      : gameMode === "computer"
+      ? "X"
+      : null;
+
   // Render main menu when no game mode is selected
   if (gameMode === null) {
     return (
@@ -595,6 +603,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
         winner={winner}
         onClose={() => setShowResult(false)}
         showResult={showResult}
+        localPlayerSymbol={localPlayerSymbol}
         onPlayAgain={() => {
           resetGame();
           setShowResult(false);

@@ -12,6 +12,11 @@ interface ResultModalProps {
   onClose: () => void;
   onPlayAgain: () => void;
   showResult: boolean;
+  /**
+   * The symbol of the local player ("X" or "O") when applicable.
+   * Used to show personalized win/lose messages in vs-computer / online modes.
+   */
+  localPlayerSymbol?: Player | null;
 }
 
 export const ResultModal = ({
@@ -19,8 +24,22 @@ export const ResultModal = ({
   onClose,
   onPlayAgain,
   showResult,
+  localPlayerSymbol,
 }: ResultModalProps) => {
   if (!winner || !showResult) return null;
+
+  const isDraw = winner === "Draw";
+  const isUserKnown = !!localPlayerSymbol && !isDraw;
+  const isUserWinner = isUserKnown && winner === localPlayerSymbol;
+  const isUserLoser = isUserKnown && winner !== localPlayerSymbol;
+
+  const titleText = isDraw
+    ? "It's a Draw!"
+    : isUserWinner
+      ? "You Win!"
+      : isUserLoser
+        ? "You Lose!"
+        : `${winner} Wins!`;
 
   return (
     <div
@@ -74,7 +93,7 @@ export const ResultModal = ({
               animation: "fadeInUp 0.6s ease-out 0.2s both",
             }}
           >
-            {winner === "Draw" ? "It's a Draw!" : `${winner} Wins!`}
+            {titleText}
           </h2>
           <p
             className="text-white/90 text-base sm:text-lg md:text-xl mb-6 sm:mb-8 md:mb-10 font-medium px-2 flex items-center justify-center gap-2"
@@ -82,8 +101,31 @@ export const ResultModal = ({
               animation: "fadeInUp 0.6s ease-out 0.4s both",
             }}
           >
-            {winner === "Draw" ? (
+            {isDraw ? (
               "Well played both!"
+            ) : isUserWinner ? (
+              <>
+                <Image
+                  src="/images/trophy.png"
+                  width={40}
+                  height={40}
+                  alt="Trophy"
+                  className="w-8 h-8 sm:w-10 sm:h-10"
+                />
+                <span className="text-2xl">Congratulations, you won!</span>
+                {/* <FaTrophy className="w-5 h-5 sm:w-6 sm:h-6" /> */}
+                <Image
+                  src="/images/trophy.png"
+                  width={40}
+                  height={40}
+                  alt="Trophy"
+                  className="w-8 h-8 sm:w-10 sm:h-10"
+                />
+              </>
+            ) : isUserLoser ? (
+              <span className="text-xl sm:text-2xl">
+                Tough luck! Your opponent won this round. Try again!
+              </span>
             ) : (
               <>
                 <Image
