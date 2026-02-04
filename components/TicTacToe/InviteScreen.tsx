@@ -363,10 +363,10 @@ export const InviteScreen = ({
           </button>
 
           <div className="relative">
-            <div className="absolute inset-0 flex items-center">
+            {/* <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-white/30"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
+            </div> */}
+            <div className="relative flex justify-center text-md">
               <span className="px-2 bg-transparent text-white/70">OR</span>
             </div>
           </div>
