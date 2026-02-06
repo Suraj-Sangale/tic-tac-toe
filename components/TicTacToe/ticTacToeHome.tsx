@@ -98,10 +98,12 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
       // Check for winner or draw
       const result = checkWinner(newBoard);
       if (result.winner) {
-        // Delay winner announcement for better UX
+        // Set winner immediately to prevent further moves
+        setWinner(result.winner);
+        setWinningLine(result.line);
+        
+        // Delay showing result modal for better UX
         setTimeout(() => {
-          setWinner(result.winner);
-          setWinningLine(result.line);
           setShowResult(true);
         }, 1000);
 
@@ -293,9 +295,12 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
       }, 500);
 
       if (data.winner) {
+        // Set winner immediately to prevent further moves
+        setWinner(data.winner);
+        setWinningLine(data.winningLine);
+        
+        // Delay showing result modal for better UX
         setTimeout(() => {
-          setWinner(data.winner);
-          setWinningLine(data.winningLine);
           setShowResult(true);
         }, 600);
 
