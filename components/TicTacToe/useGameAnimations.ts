@@ -11,7 +11,7 @@ export const useGameAnimations = () => {
     style.textContent = `
       @keyframes drawLine {
         from {
-          stroke-dashoffset: 1000;
+          stroke-dashoffset: 500;
         }
         to {
           stroke-dashoffset: 0;

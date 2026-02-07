@@ -63,33 +63,16 @@ export const GameBoard = ({
       })}
 
       {/* Winning line overlay */}
-      {winningLine.length > 0 && (
+      {winningLine.length > 0 && winner && winner !== "Draw" && (
         <svg
-          className="absolute inset-0 pointer-events-none z-20"
+          className="absolute inset-0 pointer-events-none z-30"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
           style={{ width: "100%", height: "100%", padding: "4px" }}
         >
-          <line
-            x1={`${((winningLine[0] % 3) * 100) / 3 + 100 / 6}%`}
-            y1={`${
-              (Math.floor(winningLine[0] / 3) * 100) / 3 + 100 / 6
-            }%`}
-            x2={`${((winningLine[2] % 3) * 100) / 3 + 100 / 6}%`}
-            y2={`${
-              (Math.floor(winningLine[2] / 3) * 100) / 3 + 100 / 6
-            }%`}
-            stroke="url(#winningGradient)"
-            strokeWidth="6"
-            strokeLinecap="round"
-            style={{
-              strokeDasharray: "1000",
-              strokeDashoffset: "1000",
-              animation: "drawLine 0.8s ease-out forwards",
-              filter: "drop-shadow(0 0 10px rgba(255, 255, 255, 0.8))",
-            }}
-          />
           <defs>
             <linearGradient
-              id="winningGradient"
+              id={`winningGradient-${winner}`}
               x1="0%"
               y1="0%"
               x2="100%"
@@ -109,6 +92,27 @@ export const GameBoard = ({
               />
             </linearGradient>
           </defs>
+          <line
+            x1={`${((winningLine[0] % 3) * 100) / 3 + 100 / 6}%`}
+            y1={`${
+              (Math.floor(winningLine[0] / 3) * 100) / 3 + 100 / 6
+            }%`}
+            x2={`${((winningLine[2] % 3) * 100) / 3 + 100 / 6}%`}
+            y2={`${
+              (Math.floor(winningLine[2] / 3) * 100) / 3 + 100 / 6
+            }%`}
+            stroke={`url(#winningGradient-${winner})`}
+            strokeWidth="8"
+            strokeLinecap="round"
+            style={{
+              strokeDasharray: "500",
+              strokeDashoffset: "500",
+              animation: "drawLine 0.8s ease-out forwards",
+              filter: winner === "X" 
+                ? "drop-shadow(0 0 10px rgba(239, 68, 68, 0.8))" 
+                : "drop-shadow(0 0 10px rgba(59, 130, 246, 0.8))",
+            }}
+          />
         </svg>
       )}
     </div>
