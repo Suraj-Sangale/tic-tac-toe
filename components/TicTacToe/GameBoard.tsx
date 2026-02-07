@@ -62,8 +62,8 @@ export const GameBoard = ({
         );
       })}
 
-      {/* Winning line overlay */}
-      {winningLine.length > 0 && winner && winner !== "Draw" && (
+      {/* Winning line overlay - Works for all game modes: computer, player vs player, and online */}
+      {winningLine.length === 3 && winner && winner !== "Draw" && (
         <svg
           className="absolute inset-0 pointer-events-none z-30"
           viewBox="0 0 100 100"
@@ -72,7 +72,7 @@ export const GameBoard = ({
         >
           <defs>
             <linearGradient
-              id={`winningGradient-${winner}`}
+              id={`winningGradient-${gameMode}-${winner}-${winningLine.join("-")}`}
               x1="0%"
               y1="0%"
               x2="100%"
@@ -101,7 +101,7 @@ export const GameBoard = ({
             y2={`${
               (Math.floor(winningLine[2] / 3) * 100) / 3 + 100 / 6
             }%`}
-            stroke={`url(#winningGradient-${winner})`}
+            stroke={`url(#winningGradient-${gameMode}-${winner}-${winningLine.join("-")})`}
             strokeWidth="8"
             strokeLinecap="round"
             style={{
