@@ -132,17 +132,17 @@ app.prepare().then(() => {
           playerSymbol: "O",
           isHost: false,
         });
-      console.log(`Player ${socket.id} joined room: ${roomId}`);
+      // console.log(`Player ${socket.id} joined room: ${roomId}`);
     });
 
     // Handle game move
     socket.on("make-move", ({ roomId, index, player }) => {
-      console.log("🎮 Received make-move", {
-        roomId,
-        index,
-        player,
-        socketId: socket.id,
-      });
+      // console.log("🎮 Received make-move", {
+      //   roomId,
+      //   index,
+      //   player,
+      //   socketId: socket.id,
+      // });
       const room = rooms.get(roomId);
 
       if (!room) {
@@ -156,14 +156,14 @@ app.prepare().then(() => {
         return;
       }
       if (room.currentTurn !== player) {
-        console.log("❌ Not player's turn", {
-          currentTurn: room.currentTurn,
-          attemptedPlayer: player,
-        });
+        // console.log("❌ Not player's turn", {
+        //   currentTurn: room.currentTurn,
+        //   attemptedPlayer: player,
+        // });
         return;
       }
       if (room.winner) {
-        console.log("❌ Game already ended");
+        // console.log("❌ Game already ended");
         return;
       }
 
