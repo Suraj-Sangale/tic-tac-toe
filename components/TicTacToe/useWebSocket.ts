@@ -27,9 +27,10 @@ export const useWebSocket = (): UseWebSocketReturn => {
 
   useEffect(() => {
     // Initialize socket connection
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000";
+    const socketUrl =
+      "https://tic-tac-toe-production-0b09.up.railway.app";
     console.log("Initializing socket connection to:", socketUrl);
-    
+
     const socketInstance = io(socketUrl, {
       transports: ["websocket", "polling"],
       reconnection: true,
@@ -38,10 +39,10 @@ export const useWebSocket = (): UseWebSocketReturn => {
     });
 
     socketInstance.on("connect", () => {
-      console.log("✅ Connected to server", { 
-        socketId: socketInstance.id, 
+      console.log("✅ Connected to server", {
+        socketId: socketInstance.id,
         connected: socketInstance.connected,
-        url: socketUrl 
+        url: socketUrl,
       });
       setIsConnected(true);
       setError(null);
@@ -113,19 +114,23 @@ export const useWebSocket = (): UseWebSocketReturn => {
       }
 
       return new Promise((resolve) => {
-        socket.emit("join-room", roomId, (response: RoomData | { error: string }) => {
-          if ("error" in response) {
-            setError(response.error);
-            resolve(null);
-          } else {
-            setRoomData(response);
-            setError(null);
-            resolve(response);
-          }
-        });
+        socket.emit(
+          "join-room",
+          roomId,
+          (response: RoomData | { error: string }) => {
+            if ("error" in response) {
+              setError(response.error);
+              resolve(null);
+            } else {
+              setRoomData(response);
+              setError(null);
+              resolve(response);
+            }
+          },
+        );
       });
     },
-    [socket, isConnected]
+    [socket, isConnected],
   );
 
   const makeMove = useCallback(
@@ -136,66 +141,85 @@ export const useWebSocket = (): UseWebSocketReturn => {
       }
       const targetRoomId = roomId || roomData?.roomId;
       if (!targetRoomId) {
-        console.error("Cannot make move: roomId is missing", { roomId, roomData });
+        console.error("Cannot make move: roomId is missing", {
+          roomId,
+          roomData,
+        });
         return;
       }
-      console.log("Emitting make-move", { roomId: targetRoomId, index, player, socketId: socket.id });
+      console.log("Emitting make-move", {
+        roomId: targetRoomId,
+        index,
+        player,
+        socketId: socket.id,
+      });
       socket.emit("make-move", {
         roomId: targetRoomId,
         index,
         player,
       });
     },
-    [socket, roomData]
+    [socket, roomData],
   );
 
-  const resetGame = useCallback((roomId?: string) => {
-    if (!socket) return;
-    const targetRoomId = roomId || roomData?.roomId;
-    if (!targetRoomId) return;
-    socket.emit("reset-game", { roomId: targetRoomId });
-  }, [socket, roomData]);
+  const resetGame = useCallback(
+    (roomId?: string) => {
+      if (!socket) return;
+      const targetRoomId = roomId || roomData?.roomId;
+      if (!targetRoomId) return;
+      socket.emit("reset-game", { roomId: targetRoomId });
+    },
+    [socket, roomData],
+  );
 
-  const startGame = useCallback((roomId: string) => {
-    console.log("🚀 startGame called", { 
-      hasSocket: !!socket, 
-      roomId, 
-      socketConnected: socket?.connected,
-      socketId: socket?.id,
-      socketDisconnected: socket?.disconnected
-    });
-    if (!socket) {
-      console.error("❌ Cannot start game: socket is null");
-      return;
-    }
-    if (!socket.connected) {
-      console.error("❌ Cannot start game: socket is not connected. Socket state:", {
-        connected: socket.connected,
-        disconnected: socket.disconnected,
-        id: socket.id
+  const startGame = useCallback(
+    (roomId: string) => {
+      console.log("🚀 startGame called", {
+        hasSocket: !!socket,
+        roomId,
+        socketConnected: socket?.connected,
+        socketId: socket?.id,
+        socketDisconnected: socket?.disconnected,
       });
-      return;
-    }
-    if (!roomId) {
-      console.error("❌ Cannot start game: roomId is missing");
-      return;
-    }
-    console.log("📤 Emitting start-game event with roomId:", roomId);
-    try {
-      // Emit with acknowledgment to verify it reaches server
-      socket.emit("start-game", { roomId }, (response: any) => {
-        console.log("📥 Server acknowledgment for start-game:", response);
-      });
-      console.log("✅ start-game event emitted successfully");
-      
-      // Also log after a short delay to see if anything happens
-      setTimeout(() => {
-        console.log("⏱️ 2 seconds after emit - checking if event was processed");
-      }, 2000);
-    } catch (error) {
-      console.error("❌ Error emitting start-game event:", error);
-    }
-  }, [socket]);
+      if (!socket) {
+        console.error("❌ Cannot start game: socket is null");
+        return;
+      }
+      if (!socket.connected) {
+        console.error(
+          "❌ Cannot start game: socket is not connected. Socket state:",
+          {
+            connected: socket.connected,
+            disconnected: socket.disconnected,
+            id: socket.id,
+          },
+        );
+        return;
+      }
+      if (!roomId) {
+        console.error("❌ Cannot start game: roomId is missing");
+        return;
+      }
+      console.log("📤 Emitting start-game event with roomId:", roomId);
+      try {
+        // Emit with acknowledgment to verify it reaches server
+        socket.emit("start-game", { roomId }, (response: any) => {
+          console.log("📥 Server acknowledgment for start-game:", response);
+        });
+        console.log("✅ start-game event emitted successfully");
+
+        // Also log after a short delay to see if anything happens
+        setTimeout(() => {
+          console.log(
+            "⏱️ 2 seconds after emit - checking if event was processed",
+          );
+        }, 2000);
+      } catch (error) {
+        console.error("❌ Error emitting start-game event:", error);
+      }
+    },
+    [socket],
+  );
 
   return {
     socket,
@@ -209,4 +233,3 @@ export const useWebSocket = (): UseWebSocketReturn => {
     error,
   };
 };
-
