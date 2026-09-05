@@ -109,7 +109,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
 
       setTimeout(() => {
         setReactions((prev) => prev.filter((r) => r.id !== selfReaction.id));
-      }, 10000);
+      }, 5000);
 
       if (gameMode === "online" && onlineRoomData) {
         wsSendReaction(emoji, onlineRoomData.roomId);
@@ -497,7 +497,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
 
       setTimeout(() => {
         setReactions((prev) => prev.filter((r) => r.id !== newReaction.id));
-      }, 10000);
+      }, 5000);
     };
 
     socket.on("move-made", handleMoveMade);
@@ -635,7 +635,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
 
 
           {/* Game Board and Score Board */}
-          <div className="flex flex-row justify-evenly">
+          <div className="flex flex-col md:flex-row justify-evenly items-center md:items-stretch">
             <GameBoard
               board={board}
               winningLine={winningLine}
