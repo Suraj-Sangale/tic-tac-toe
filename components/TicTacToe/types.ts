@@ -44,10 +44,74 @@ export type AllowedEmoji = typeof ALLOWED_EMOJIS[number];
 
 export interface EmojiReaction {
   id: string;
-  emoji: string;
+  emoji: AllowedEmoji | string;
   senderId: string;
   senderSymbol?: Player;
   isSelf: boolean;
   timestamp: number;
 }
+
+export interface EmojiMeta {
+  id: string;
+  name: string;
+  char: AllowedEmoji;
+  imageUrl: string;
+}
+
+export const EMOJI_DATA: Record<AllowedEmoji, EmojiMeta> = {
+  "😂": {
+    id: "joy",
+    name: "Tears of Joy",
+    char: "😂",
+    imageUrl: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f602/512.webp",
+  },
+  "❤️": {
+    id: "heart",
+    name: "Red Heart",
+    char: "❤️",
+    imageUrl: "https://fonts.gstatic.com/s/e/notoemoji/latest/2764_fe0f/512.webp",
+  },
+  "😮": {
+    id: "surprised",
+    name: "Surprised",
+    char: "😮",
+    imageUrl: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f62e/512.webp",
+  },
+  "👏": {
+    id: "clap",
+    name: "Clapping Hands",
+    char: "👏",
+    imageUrl: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44f/512.webp",
+  },
+  "🔥": {
+    id: "fire",
+    name: "Fire",
+    char: "🔥",
+    imageUrl: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f525/512.webp",
+  },
+  "😢": {
+    id: "cry",
+    name: "Crying Face",
+    char: "😢",
+    imageUrl: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f622/512.webp",
+  },
+  "😡": {
+    id: "angry",
+    name: "Angry Face",
+    char: "😡",
+    imageUrl: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f621/512.webp",
+  },
+  "🎉": {
+    id: "party",
+    name: "Party Popper",
+    char: "🎉",
+    imageUrl: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f389/512.webp",
+  },
+  "👍": {
+    id: "thumbsup",
+    name: "Thumbs Up",
+    char: "👍",
+    imageUrl: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44d/512.webp",
+  },
+};
 

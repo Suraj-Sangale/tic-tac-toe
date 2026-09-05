@@ -146,14 +146,15 @@ export const useGameAnimations = () => {
           opacity: 0;
           transform: translateY(12px) scale(0.5) rotate(-6deg);
         }
-        15% {
+        
+        10% {
           opacity: 1;
           transform: translateY(-5px) scale(1.35) rotate(4deg);
         }
         35% {
           transform: translateY(-25px) scale(1.15) rotate(-3deg);
         }
-        70% {
+        90% {
           opacity: 0.95;
           transform: translateY(-65px) scale(1.05) rotate(3deg);
         }
@@ -198,13 +199,15 @@ export const useGameAnimations = () => {
         background-size: 200% 200%;
         animation: gradientShift 15s ease infinite;
       }
-      .animate-reaction-float {
-        animation: floatReaction 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      .animate-reaction-float { 
+        animation: floatReaction 10s cubic-bezier(0.25, 1, 0.5, 1) forwards;
       }
       .animate-pop-picker {
         animation: popPicker 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
       }
     `;
+        // annimation timer floatReaction 10s 
+
     document.head.appendChild(style);
     return () => {
       document.head.removeChild(style);

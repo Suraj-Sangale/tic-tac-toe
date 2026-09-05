@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { FaSmile } from "react-icons/fa";
-import { ALLOWED_EMOJIS, AllowedEmoji } from "./types";
+import { ALLOWED_EMOJIS, AllowedEmoji, EMOJI_DATA } from "./types";
 
 interface QuickReactionPickerProps {
   onSelectEmoji: (emoji: AllowedEmoji) => void;
@@ -15,7 +15,7 @@ interface QuickReactionPickerProps {
 
 export const QuickReactionPicker: React.FC<QuickReactionPickerProps> = ({
   onSelectEmoji,
-  cooldownMs = 800,
+  cooldownMs = 7000,
   disabled = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -114,23 +114,35 @@ export const QuickReactionPicker: React.FC<QuickReactionPickerProps> = ({
       {/* Emoji Popup Menu */}
       {isOpen && (
         <div
-          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 p-2 sm:p-2.5 backdrop-blur-2xl bg-black/75 border-2 border-white/30 rounded-2xl shadow-2xl animate-pop-picker flex items-center gap-1 sm:gap-1.5 select-none"
+          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 p-2 sm:p-2.5 backdrop-blur-2xl bg-black/85 border-2 border-white/30 rounded-2xl shadow-2xl animate-pop-picker flex items-center gap-1 sm:gap-2 select-none"
           role="dialog"
           aria-label="Quick Emoji Reactions"
         >
-          {ALLOWED_EMOJIS.map((emoji) => (
-            <button
-              key={emoji}
-              type="button"
-              onClick={() => handleEmojiClick(emoji)}
-              className="w-8 h-8 sm:w-9 sm:h-9 text-lg sm:text-xl flex items-center justify-center rounded-xl hover:bg-white/20 active:scale-125 hover:scale-125 transition-transform duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/50"
-              title={emoji}
-            >
-              <span className="drop-shadow-md">{emoji}</span>
-            </button>
-          ))}
+          {ALLOWED_EMOJIS.map((emoji) => {
+            const meta = EMOJI_DATA[emoji];
+            return (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => handleEmojiClick(emoji)}
+                className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center p-1 rounded-xl hover:bg-white/20 active:scale-125 hover:scale-125 transition-transform duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/50"
+                title={meta?.name || emoji}
+              >
+                {meta?.imageUrl ? (
+                  <img
+                    src={meta.imageUrl}
+                    alt={meta.name}
+                    className="w-full h-full object-contain pointer-events-none drop-shadow-md"
+                    loading="eager"
+                  />
+                ) : (
+                  <span className="text-xl drop-shadow-md">{emoji}</span>
+                )}
+              </button>
+            );
+          })}
           {/* Arrow indicator */}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-6 border-x-transparent border-t-6 border-t-black/75"></div>
+          <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-6 border-x-transparent border-t-6 border-t-black/85"></div>
         </div>
       )}
     </div>

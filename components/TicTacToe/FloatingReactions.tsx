@@ -4,7 +4,7 @@
  */
 
 import React from "react";
-import { EmojiReaction, Player } from "./types";
+import { EmojiReaction, Player, EMOJI_DATA, AllowedEmoji } from "./types";
 
 interface FloatingReactionsProps {
   reactions: EmojiReaction[];
@@ -13,7 +13,6 @@ interface FloatingReactionsProps {
 
 export const FloatingReactions: React.FC<FloatingReactionsProps> = ({
   reactions,
-  localPlayerSymbol,
 }) => {
   if (reactions.length === 0) return null;
 
@@ -40,7 +39,8 @@ export const FloatingReactions: React.FC<FloatingReactionsProps> = ({
         }
 
         // Add subtle horizontal drift based on index to separate multiple simultaneous emojis
-        const horizontalOffset = ((index % 5) - 2) * 14;
+        const horizontalOffset = ((index % 5) - 2) * 16;
+        const emojiMeta = EMOJI_DATA[reaction.emoji as AllowedEmoji];
 
         return (
           <div
@@ -51,9 +51,18 @@ export const FloatingReactions: React.FC<FloatingReactionsProps> = ({
             }}
           >
             <div className="relative flex items-center justify-center p-2 rounded-2xl bg-white/20 backdrop-blur-md border border-white/40 shadow-xl shadow-purple-500/20">
-              <span className="text-3xl sm:text-4xl md:text-5xl filter drop-shadow-lg select-none">
-                {reaction.emoji}
-              </span>
+              {emojiMeta?.imageUrl ? (
+                <img
+                  src={emojiMeta.imageUrl}
+                  alt={emojiMeta.name}
+                  className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 object-contain pointer-events-none drop-shadow-xl filter"
+                  loading="eager"
+                />
+              ) : (
+                <span className="text-3xl sm:text-4xl md:text-5xl filter drop-shadow-lg select-none">
+                  {reaction.emoji}
+                </span>
+              )}
               {reaction.senderSymbol && (
                 <span
                   className={`absolute -top-1.5 -right-1.5 text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white shadow-md ${

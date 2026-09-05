@@ -109,7 +109,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
 
       setTimeout(() => {
         setReactions((prev) => prev.filter((r) => r.id !== selfReaction.id));
-      }, 1800);
+      }, 10000);
 
       if (gameMode === "online" && onlineRoomData) {
         wsSendReaction(emoji, onlineRoomData.roomId);
@@ -497,7 +497,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
 
       setTimeout(() => {
         setReactions((prev) => prev.filter((r) => r.id !== newReaction.id));
-      }, 1800);
+      }, 10000);
     };
 
     socket.on("move-made", handleMoveMade);
@@ -518,7 +518,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
   }, [socket, gameMode, onlineRoomData]);
 
   // Render main menu when no game mode is selected
-  if (gameMode === null && !room) {
+  if (gameMode === null) {
     return (
       <MenuScreen
         onSelectMode={(mode) => {
