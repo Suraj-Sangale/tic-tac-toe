@@ -28,14 +28,19 @@ export const useWebSocket = (): UseWebSocketReturn => {
   useEffect(() => {
     // Initialize socket connection
     const socketUrl =
-      "https://tic-tac-toe-production-0b09.up.railway.app";
+      process.env.NEXT_PUBLIC_SOCKET_URL ||
+      (typeof window !== "undefined" &&
+      (window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1")
+        ? "http://localhost:3000"
+        : "https://tic-tac-toe-production-0b09.up.railway.app");
     console.log("Initializing socket connection to:", socketUrl);
 
     const socketInstance = io(socketUrl, {
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
     });
 
     socketInstance.on("connect", () => {

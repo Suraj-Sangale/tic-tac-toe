@@ -34,6 +34,7 @@ import { ScoreBoard } from "./ScoreBoard";
 import { ResultModal } from "./ResultModal";
 import { AnimatedBackground } from "./AnimatedBackground";
 import { useWebSocket } from "./useWebSocket";
+import { useRouter } from "next/router";
 
 export const TicTacToeHome = ({ parentRoom = "" }) => {
   // Initialize animations
@@ -70,6 +71,8 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
   const [error, setError] = useState<string | null>(null);
   const [bothPlayersReady, setBothPlayersReady] = useState(false);
 
+  const router = useRouter();
+  const { room="" } = router.query;
   // Processes a move on the board
   // @param index - The cell index (0-8) where the move is being made
   //  * @param player - The player making the move ("X" or "O")
@@ -442,7 +445,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
       : null;
 
   // Render main menu when no game mode is selected
-  if (gameMode === null) {
+  if (gameMode === null && !room) {
     return (
       <MenuScreen
         onSelectMode={(mode) => {
@@ -455,6 +458,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
       />
     );
   }
+  console.log("bothPlayersReady", bothPlayersReady);
   // Render invite screen for online mode
   // Show it when user selects online mode, but hide it when both players are ready
   if (

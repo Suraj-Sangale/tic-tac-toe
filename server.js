@@ -314,55 +314,27 @@ app.prepare().then(() => {
     });
 
     socket.on("delete-room", (roomId = "", callback) => {
-      console.log("🎮 Server received start-game event", {
-        data,
+      console.log("🗑️ Server received delete-room event", {
+        roomId,
         socketId: socket.id,
-        dataType: typeof data,
-        hasCallback: typeof callback === "function",
       });
 
-      // Handle both object and direct roomId formats
-
       if (!roomId) {
-        console.error("❌ start-game event missing roomId", data);
-        if (typeof callback === "function") {
-          callback({ error: "Missing roomId" });
-        }
+        if (typeof callback === "function") callback({ error: "Missing roomId" });
         return;
       }
 
       const room = rooms.get(roomId);
       if (!room) {
-        console.log(
-          "❌ Room not found:",
-          roomId,
-          "Available rooms:",
-          Array.from(rooms.keys())
-        );
-        if (typeof callback === "function") {
-          callback({ error: "Room not found" });
-        }
+        if (typeof callback === "function") callback({ error: "Room not found" });
         return;
       }
 
-      // Initialize fresh game state
-      room.board = Array(9).fill(null);
-      room.currentTurn = "X";
-      room.winner = null;
-      room.winningLine = [];
-
-      // Notify all players that the game has started
-      console.log(`📢 Emitting game-started to room: ${roomId}`);
-      io.to(roomId).emit("game-started", {
-        board: room.board,
-        currentTurn: room.currentTurn,
-      });
-
-      // Send acknowledgment rooms.delete(roomId);
+      rooms.delete(roomId);
       console.log(`Room deleted: ${roomId}`);
-      // if (typeof callback === "function") {
-      //   callback({ success: true, roomId });
-      // }
+      if (typeof callback === "function") {
+        callback({ success: true, roomId });
+      }
     });
 
     // Handle disconnect
