@@ -12,6 +12,7 @@ const handle = app.getRequestHandler();
 
 // Store active game rooms
 const rooms = new Map();
+const lastReactionTimes = new Map();
 
 app.prepare().then(() => {
   const httpServer = createServer(async (req, res) => {
@@ -337,8 +338,71 @@ app.prepare().then(() => {
       }
     });
 
+    // Handle quick emoji reaction
+    socket.on("game:reaction", (data) => {
+      try {
+        const { roomId, emoji } = data || {};
+        if (!roomId || !emoji) return;
+
+        const ALLOWED_EMOJIS = [
+          "😂",
+          "❤️",
+          "😮",
+          "👏",
+          "🔥",
+          "😢",
+          "😡",
+          "🎉",
+          "👍",
+        ];
+
+        // Validate emoji
+        if (!ALLOWED_EMOJIS.includes(emoji)) {
+          console.warn(`[Socket ${socket.id}] Invalid emoji reaction attempted:`, emoji);
+          return;
+        }
+
+        const room = rooms.get(roomId);
+        if (!room) {
+          console.warn(`[Socket ${socket.id}] Reaction attempted in non-existent room:`, roomId);
+          return;
+        }
+
+        // Verify sender is in room
+        const playerData = room.players.find((p) => p.id === socket.id);
+        if (!playerData) {
+          console.warn(`[Socket ${socket.id}] Sender not in room:`, roomId);
+          return;
+        }
+
+        // Rate limiting: max 1 reaction per 400ms per client
+        const now = Date.now();
+        const lastTime = lastReactionTimes.get(socket.id) || 0;
+        if (now - lastTime < 400) {
+          return;
+        }
+        lastReactionTimes.set(socket.id, now);
+
+        const reactionPayload = {
+          roomId,
+          emoji,
+          senderId: socket.id,
+          senderSymbol: playerData.symbol,
+          id: `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          timestamp: now,
+        };
+
+        // Broadcast to other players in the room
+        socket.to(roomId).emit("game:reaction", reactionPayload);
+        console.log(`💬 Reaction "${emoji}" sent from ${socket.id} (${playerData.symbol}) in room ${roomId}`);
+      } catch (err) {
+        console.error("Error processing game:reaction", err);
+      }
+    });
+
     // Handle disconnect
     socket.on("disconnect", () => {
+      lastReactionTimes.delete(socket.id);
       console.log("Client disconnected:", socket.id);
 
       // Remove player from rooms

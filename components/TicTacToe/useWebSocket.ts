@@ -3,9 +3,9 @@
  * Manages socket.io connection and game room events
  */
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
-import { RoomData, Board, Player, WinnerResult } from "./types";
+import { RoomData, Player } from "./types";
 
 interface UseWebSocketReturn {
   socket: Socket | null;
@@ -16,6 +16,7 @@ interface UseWebSocketReturn {
   makeMove: (index: number, player: Player, roomId?: string) => void;
   resetGame: (roomId?: string) => void;
   startGame: (roomId: string) => void;
+  sendReaction: (emoji: string, roomId?: string) => void;
   error: string | null;
 }
 
@@ -208,7 +209,7 @@ export const useWebSocket = (): UseWebSocketReturn => {
       console.log("📤 Emitting start-game event with roomId:", roomId);
       try {
         // Emit with acknowledgment to verify it reaches server
-        socket.emit("start-game", { roomId }, (response: any) => {
+        socket.emit("start-game", { roomId }, (response: unknown) => {
           console.log("📥 Server acknowledgment for start-game:", response);
         });
         console.log("✅ start-game event emitted successfully");
@@ -226,6 +227,26 @@ export const useWebSocket = (): UseWebSocketReturn => {
     [socket],
   );
 
+  const sendReaction = useCallback(
+    (emoji: string, roomId?: string) => {
+      if (!socket) {
+        console.error("Cannot send reaction: socket is null");
+        return;
+      }
+      const targetRoomId = roomId || roomData?.roomId;
+      if (!targetRoomId) {
+        console.error("Cannot send reaction: roomId is missing");
+        return;
+      }
+      socket.emit("game:reaction", {
+        roomId: targetRoomId,
+        emoji,
+        senderId: socket.id,
+      });
+    },
+    [socket, roomData],
+  );
+
   return {
     socket,
     roomData,
@@ -235,6 +256,7 @@ export const useWebSocket = (): UseWebSocketReturn => {
     makeMove,
     resetGame,
     startGame,
+    sendReaction,
     error,
   };
 };

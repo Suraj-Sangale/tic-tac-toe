@@ -24,6 +24,8 @@ import {
   GameScores,
   ScoreAnimation,
   RoomData,
+  EmojiReaction,
+  AllowedEmoji,
 } from "./types";
 import { checkWinner, makeComputerMove } from "./gameLogic";
 import { useGameAnimations } from "./useGameAnimations";
@@ -33,6 +35,8 @@ import { GameBoard } from "./GameBoard";
 import { ScoreBoard } from "./ScoreBoard";
 import { ResultModal } from "./ResultModal";
 import { AnimatedBackground } from "./AnimatedBackground";
+import { QuickReactionPicker } from "./QuickReactionPicker";
+import { FloatingReactions } from "./FloatingReactions";
 import { useWebSocket } from "./useWebSocket";
 import { useRouter } from "next/router";
 
@@ -50,6 +54,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
     startGame: wsStartGame,
     createRoom: wsCreateRoom,
     joinRoom: wsJoinRoom,
+    sendReaction: wsSendReaction,
     isConnected: wsIsConnected,
     error: wsError,
   } = useWebSocket();
@@ -66,10 +71,52 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
   const [scoreAnimation, setScoreAnimation] = useState<ScoreAnimation>({
     type: null,
   });
+  const [reactions, setReactions] = useState<EmojiReaction[]>([]);
   const [onlineRoomData, setOnlineRoomData] = useState<RoomData | null>(null);
   const [showInviteScreen, setShowInviteScreen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [bothPlayersReady, setBothPlayersReady] = useState(false);
+
+  // Determine the local player's symbol for personalized messages
+  const localPlayerSymbol: Player | null =
+    gameMode === "online" && onlineRoomData
+      ? onlineRoomData.playerSymbol
+      : gameMode === "computer"
+      ? "X"
+      : null;
+
+  // Handles sending emoji reactions with local feedback and real-time socket emit
+  const handleSendReaction = useCallback(
+    (emoji: AllowedEmoji) => {
+      const senderSymbol =
+        localPlayerSymbol ||
+        (gameMode === "online" && onlineRoomData
+          ? onlineRoomData.playerSymbol
+          : isXNext
+          ? "X"
+          : "O");
+
+      const selfReaction: EmojiReaction = {
+        id: `self_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        emoji,
+        senderId: socket?.id || "local-user",
+        senderSymbol,
+        isSelf: true,
+        timestamp: Date.now(),
+      };
+
+      setReactions((prev) => [...prev, selfReaction]);
+
+      setTimeout(() => {
+        setReactions((prev) => prev.filter((r) => r.id !== selfReaction.id));
+      }, 1800);
+
+      if (gameMode === "online" && onlineRoomData) {
+        wsSendReaction(emoji, onlineRoomData.roomId);
+      }
+    },
+    [socket, localPlayerSymbol, gameMode, onlineRoomData, isXNext, wsSendReaction]
+  );
 
   const router = useRouter();
   const { room="" } = router.query;
@@ -421,11 +468,44 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
       setShowInviteScreen(false);
     };
 
+    const handleReaction = (data: {
+      roomId: string;
+      emoji: string;
+      senderId: string;
+      senderSymbol?: Player;
+      id?: string;
+    }) => {
+      // Validate room match if room is set
+      if (
+        onlineRoomData &&
+        data?.roomId &&
+        data.roomId !== onlineRoomData.roomId
+      ) {
+        return;
+      }
+
+      const newReaction: EmojiReaction = {
+        id: data.id || `remote_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        emoji: data.emoji,
+        senderId: data.senderId,
+        senderSymbol: data.senderSymbol,
+        isSelf: false,
+        timestamp: Date.now(),
+      };
+
+      setReactions((prev) => [...prev, newReaction]);
+
+      setTimeout(() => {
+        setReactions((prev) => prev.filter((r) => r.id !== newReaction.id));
+      }, 1800);
+    };
+
     socket.on("move-made", handleMoveMade);
     socket.on("game-reset", handleGameReset);
     socket.on("player-joined", handlePlayerJoined);
     socket.on("player-left", handlePlayerLeft);
     socket.on("game-started", handleGameStarted);
+    socket.on("game:reaction", handleReaction);
 
     return () => {
       socket.off("move-made", handleMoveMade);
@@ -433,16 +513,9 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
       socket.off("player-joined", handlePlayerJoined);
       socket.off("player-left", handlePlayerLeft);
       socket.off("game-started", handleGameStarted);
+      socket.off("game:reaction", handleReaction);
     };
   }, [socket, gameMode, onlineRoomData]);
-
-  // Determine the local player's symbol for personalized messages
-  const localPlayerSymbol: Player | null =
-    gameMode === "online" && onlineRoomData
-      ? onlineRoomData.playerSymbol
-      : gameMode === "computer"
-      ? "X"
-      : null;
 
   // Render main menu when no game mode is selected
   if (gameMode === null && !room) {
@@ -485,6 +558,11 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
       <AnimatedBackground />
 
       <div className="backdrop-blur-xl bg-white/10 rounded-2xl sm:rounded-3xl p-2 sm:p-3 md:p-4 shadow-2xl border-2 border-white/30 w-4/5 relative z-10 flex flex-col lg:flex-row gap-2 sm:gap-3 md:gap-4 board-entrance mx-auto">
+        {/* Floating Emoji Reactions Overlay */}
+        <FloatingReactions
+          reactions={reactions}
+          localPlayerSymbol={localPlayerSymbol}
+        />
 
         <div className="flex-1 flex flex-col justify-around">
           {/* Header with back button and game mode indicator */}
@@ -575,7 +653,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
             />
           </div>
 
-          {/* Game Status */}
+          {/* Game Actions & Status */}
           <div className="text-center">
             <p className="text-white text-xs sm:text-sm md:text-base mb-1.5 sm:mb-2 font-semibold drop-shadow-lg">
               {winner ? (
@@ -596,13 +674,16 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
                 <></>
               )}
             </p>
-            <button
-              onClick={resetGame}
-              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-lg text-white font-semibold text-xs sm:text-sm transition-all duration-300 border-2 border-white/30 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 mx-auto"
-            >
-              <FaRedo className="w-4 h-4" />
-              <span>New Game</span>
-            </button>
+            <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
+              <button
+                onClick={resetGame}
+                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-xl text-white font-semibold text-xs sm:text-sm transition-all duration-300 border-2 border-white/30 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+              >
+                <FaRedo className="w-4 h-4" />
+                <span>New Game</span>
+              </button>
+              <QuickReactionPicker onSelectEmoji={handleSendReaction} />
+            </div>
           </div>
         </div>
       </div>

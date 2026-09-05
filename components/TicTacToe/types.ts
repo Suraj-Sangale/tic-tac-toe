@@ -28,3 +28,26 @@ export interface RoomData {
   isHost: boolean;
 }
 
+export const ALLOWED_EMOJIS = [
+  "😂",
+  "❤️",
+  "😮",
+  "👏",
+  "🔥",
+  "😢",
+  "😡",
+  "🎉",
+  "👍",
+] as const;
+
+export type AllowedEmoji = typeof ALLOWED_EMOJIS[number];
+
+export interface EmojiReaction {
+  id: string;
+  emoji: string;
+  senderId: string;
+  senderSymbol?: Player;
+  isSelf: boolean;
+  timestamp: number;
+}
+
