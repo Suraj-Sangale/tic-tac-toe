@@ -156,11 +156,11 @@ const EmojiButton: React.FC<EmojiButtonProps> = ({
             );  
           })}
         <span className="font-medium">React</span>
-        {isCoolingDown && (
+        {/* {isCoolingDown && (
           <span className="text-[10px] sm:text-xs text-white/80 font-mono">
             {(cooldownRemaining / 1000).toFixed(1)}s
           </span>
-        )}
+        )} */}
       </button>
 
       {/* Emoji Popup Menu */}
