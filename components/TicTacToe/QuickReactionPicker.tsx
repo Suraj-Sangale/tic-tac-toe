@@ -130,7 +130,7 @@ const EmojiButton: React.FC<EmojiButtonProps> = ({
       <button
         type="button"
         onClick={() => !disabled && !isCoolingDown && setIsOpen((prev) => !prev)}
-        disabled={disabled || isCoolingDown}
+        disabled={disabled}
         title={isCoolingDown ? "Cooldown..." : "Send Reaction"}
         className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-white font-semibold text-xs sm:text-sm backdrop-blur-lg border transition-all duration-200 flex items-center gap-1.5 shadow-lg active:scale-95 ${
           isOpen
