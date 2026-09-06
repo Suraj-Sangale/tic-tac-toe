@@ -18,7 +18,7 @@ export const ScoreBoard = ({
   scoreAnimation,
 }: ScoreBoardProps) => {
   return (
-    <div className="w-1/2 lg:w-40 xl:w-44 backdrop-blur-lg bg-white/10 p-2 sm:p-2.5 rounded-xl border-2 border-white/20 flex flex-col gap-1.5 sm:gap-2 shadow-xl overflow-x-auto lg:overflow-x-visible">
+    <div className="sm:w-1/2 lg:w-40 xl:w-44 backdrop-blur-lg bg-white/10 p-2 sm:p-2.5 rounded-xl border-2 border-white/20 flex flex-row sm:flex-col gap-1.5 sm:gap-2 shadow-xl overflow-x-auto lg:overflow-x-visible">
       {/* Player X Score */}
       <div
 

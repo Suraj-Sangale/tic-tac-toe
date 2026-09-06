@@ -557,7 +557,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
     <div className="min-h-screen h-screen bg-gradient-to-br from-indigo-950 via-purple-500 to-pink-500 bg-animated flex items-center justify-center p-1.5 sm:p-2 md:p-3 relative overflow-hidden">
       <AnimatedBackground />
 
-      <div className="backdrop-blur-xl bg-white/10 rounded-2xl sm:rounded-3xl p-2 sm:p-3 md:p-4 shadow-2xl border-2 border-white/30 w-4/5 relative z-10 flex flex-col lg:flex-row gap-2 sm:gap-3 md:gap-4 board-entrance mx-auto">
+      <div className="backdrop-blur-xl bg-white/10 rounded-2xl sm:rounded-3xl p-2 sm:p-3 md:p-4 shadow-2xl border-2 border-white/30  w-[90%] sm:w-4/5 relative z-10 flex flex-col lg:flex-row gap-2 sm:gap-3 md:gap-4 board-entrance mx-auto">
         {/* Floating Emoji Reactions Overlay */}
         <FloatingReactions
           reactions={reactions}
@@ -635,7 +635,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
 
 
           {/* Game Board and Score Board */}
-          <div className="flex flex-col md:flex-row justify-evenly items-center md:items-stretch">
+          <div className="flex flex-col sm:flex-row justify-evenly items-center sm:items-stretch">
             <GameBoard
               board={board}
               winningLine={winningLine}
@@ -677,7 +677,7 @@ export const TicTacToeHome = ({ parentRoom = "" }) => {
             <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
               <button
                 onClick={resetGame}
-                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-xl text-white font-semibold text-xs sm:text-sm transition-all duration-300 border-2 border-white/30 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                className="px-3 sm:px-4 py-1.5 sm:py-3 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-xl text-white font-semibold text-xs sm:text-sm transition-all duration-300 border border-white/30 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
               >
                 <FaRedo className="w-4 h-4" />
                 <span>New Game</span>

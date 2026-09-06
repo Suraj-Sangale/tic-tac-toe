@@ -84,6 +84,46 @@ export const QuickReactionPicker: React.FC<QuickReactionPickerProps> = ({
 
   const isCoolingDown = cooldownRemaining > 0;
 
+interface EmojiMeta {
+  name?: string;
+  imageUrl?: string;
+}
+
+interface EmojiButtonProps {
+  emoji: AllowedEmoji;
+  parentClassName?: String;
+  meta?: EmojiMeta;
+  onClick: (emoji: AllowedEmoji) => void;
+}
+
+const EmojiButton: React.FC<EmojiButtonProps> = ({
+  emoji,
+  meta,
+  onClick,
+  parentClassName="w-8 h-8 sm:w-9 sm:h-9",
+}) => {
+  return (
+    <button
+      type="button"
+      onClick={() => onClick(emoji)}
+      className={`${parentClassName} flex items-center justify-center p-1 rounded-xl hover:bg-white/20 active:scale-125 hover:scale-125 transition-transform duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/50`}
+      title={meta?.name || emoji}
+    >
+      {meta?.imageUrl ? (
+        <img
+          src={meta.imageUrl}
+          alt={meta.name || emoji}
+          className="w-full h-full object-contain pointer-events-none drop-shadow-md"
+          loading="eager"
+        />
+      ) : (
+        <span className="text-xl drop-shadow-md">{emoji}</span>
+      )}
+    </button>
+  );
+};
+
+
   return (
     <div className="relative inline-block" ref={containerRef}>
       {/* Reaction Trigger Button */}
@@ -100,9 +140,21 @@ export const QuickReactionPicker: React.FC<QuickReactionPickerProps> = ({
             : "bg-white/20 hover:bg-white/30 border-white/30 hover:scale-105 hover:border-white/50"
         }`}
       >
-        <span className="text-base sm:text-lg">
-          <FaSmile className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-yellow-300 animate-pulse" />
-        </span>
+        {/* <span className="text-base sm:text-lg">
+          <FaSmile className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-yellow-300" />
+        </span> */}
+        {ALLOWED_EMOJIS.slice(0,1).map((emoji) => {
+            const meta = EMOJI_DATA[emoji];
+            return (
+              <EmojiButton
+      key={emoji}
+      emoji={emoji}
+      meta={meta}
+      onClick={handleEmojiClick}
+      parentClassName="w-4 h-4  sm:w-7 sm:h-7"
+    />
+            );  
+          })}
         <span className="font-medium">React</span>
         {isCoolingDown && (
           <span className="text-[10px] sm:text-xs text-white/80 font-mono">
@@ -121,25 +173,13 @@ export const QuickReactionPicker: React.FC<QuickReactionPickerProps> = ({
           {ALLOWED_EMOJIS.map((emoji) => {
             const meta = EMOJI_DATA[emoji];
             return (
-              <button
-                key={emoji}
-                type="button"
-                onClick={() => handleEmojiClick(emoji)}
-                className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center p-1 rounded-xl hover:bg-white/20 active:scale-125 hover:scale-125 transition-transform duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/50"
-                title={meta?.name || emoji}
-              >
-                {meta?.imageUrl ? (
-                  <img
-                    src={meta.imageUrl}
-                    alt={meta.name}
-                    className="w-full h-full object-contain pointer-events-none drop-shadow-md"
-                    loading="eager"
-                  />
-                ) : (
-                  <span className="text-xl drop-shadow-md">{emoji}</span>
-                )}
-              </button>
-            );
+              <EmojiButton
+      key={emoji}
+      emoji={emoji}
+      meta={meta}
+      onClick={handleEmojiClick}
+    />
+            );  
           })}
           {/* Arrow indicator */}
           <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-6 border-x-transparent border-t-6 border-t-black/85"></div>
